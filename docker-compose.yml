@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Veritabanı
+  postgres:
+    image: postgres:15-alpine
+    container_name: baby_compare_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: baby_compare
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Hızlı Arama Motoru (Meilisearch)
+  meilisearch:
+    image: getmeili/meilisearch:v1.3
+    container_name: baby_compare_search
+    environment:
+      MEILI_MASTER_KEY: masterKey123
+    ports:
+      - "7700:7700"
+    volumes:
+      - meili_data:/meilidata
+
+volumes:
+  postgres_data:
+  meili_data:
+  
