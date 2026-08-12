@@ -1,27 +1,31 @@
-﻿name: Daily Price Scraper
+﻿name: Auto Price Scraper ⚡
 
 on:
   schedule:
-    - cron: '0 6 * * *' # Her gün TSİ 09:00'da otomatik çalışır
-  workflow_dispatch: # GitHub panelinden elle çalıştır butonu
+    # Her 30 dakikada bir otomatik tetiklenir
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Elle tetikleme butonu
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+
     steps:
       - name: Code Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install Dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install curl_cffi psycopg2-binary playwright
           playwright install chromium
           playwright install-deps
 
       - name: Run Scraper Script
         run: python scraper.py
+        
