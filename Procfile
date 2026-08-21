@@ -1,0 +1,1 @@
+gunicorn bebek.app:app

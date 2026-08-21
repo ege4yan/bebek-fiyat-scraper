@@ -10,17 +10,94 @@ SUPABASE_DB_URL = "postgresql://postgres.bwmcjllhzfcqncpefixp:ZggkAkebj4JA8gBt@a
 
 PRODUCT_LIST = [
     {
-        "name": "Prima Premium Care 4 Numara (126 Adet)",
+        "name": "Molfix 6 Numara Extra Large 80'li Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "molfix",
+        "keywords": [
+            "molfix"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Prima Premium Care 5 Numara Junior 74'lü Bebek Bezi",
         "category_slug": "bebek-bezi",
         "brand_slug": "prima",
-        "keywords": ["prima", "bezi", "care", "4"],
-        "urls": {
-            "Trendyol": "https://www.trendyol.com/prima/bebek-bezi-premium-care-4-numara-126-adet-aylik-firsat-paketi-p-36462023",
-            "N11": "https://www.n11.com/urun/prima-bebek-bezi-premium-care-4-numara-aylik-firsat-paketi-126-adet-1598809",
-            "Amazon": "https://www.amazon.com.tr/dp/B0855HV1ZB",
-            "Idefix": "https://www.idefix.com/prima-premium-care-4-beden-bebek-bezi-126-adet-maxi-aylik-firsat-paketi-p-382470",
-            "Hepsiburada": "https://www.hepsiburada.com/prima-premiumcare-bebek-bezi-aylik-firsat-paketi-4-numara-126-adet-bez-p-HBV00000RFTBG"
-        }
+        "keywords": [
+            "prima"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Prima Premium Care 1 Numara Yenidoğan 70'li Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "prima",
+        "keywords": [
+            "prima"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Prima Premium Care 6 Numara Extra Large 62'li Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "prima",
+        "keywords": [
+            "prima"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Molfix 4 Numara Maxi 186'lı Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "molfix",
+        "keywords": [
+            "molfix"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Molfix 3 Numara Midi 140'lı Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "molfix",
+        "keywords": [
+            "molfix"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Sleepy Natural Double Soft 6 Numara X Large 62'li 2 Adet Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "sleepy",
+        "keywords": [
+            "sleepy"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Molfix 5 Numara Junior 78'li 2 Adet Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "molfix",
+        "keywords": [
+            "molfix"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Molfix Premium 5 Numara Junior 66'lı 4 Adet Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "molfix",
+        "keywords": [
+            "molfix"
+        ],
+        "urls": {}
+    },
+    {
+        "name": "Molfix 5 Numara Junior 100'lü Bebek Bezi",
+        "category_slug": "bebek-bezi",
+        "brand_slug": "molfix",
+        "keywords": [
+            "molfix"
+        ],
+        "urls": {}
     }
 ]
 
