@@ -1,4 +1,5 @@
 from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
@@ -9,35 +10,41 @@ def amazon_tara(max_sayfa=3):
     base_url = "https://www.amazon.com.tr/s?k=bebek+bezi&rh=n%3A12466391031"
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, slow_mo=70)
+        # Bulutta çalışacağı için headless=True yapıyoruz
+        browser = p.chromium.launch(headless=True, slow_mo=70)
+        
+        # Gerçek bilgisayar gibi maskeleme
         context = browser.new_context(
             viewport={'width': 1920, 'height': 1080},
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            locale="tr-TR"
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            locale="tr-TR",
+            timezone_id="Europe/Istanbul"
         )
         page = context.new_page()
+        
+        # SİHİRLİ DOKUNUŞ: Amazon'un bot korumasını aşmak için görünmezlik pelerini
+        stealth_sync(page)
         
         for sayfa_no in range(1, max_sayfa + 1):
             url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
             print(f"\n[Amazon TR] Sayfa {sayfa_no} taranıyor: {url}")
             
             try:
-                page.goto(url, timeout=60000, wait_until="domcontentloaded")
+                # Sanki linke Google'dan tıklamışız gibi yapıyoruz (referer)
+                page.goto(url, timeout=60000, wait_until="domcontentloaded", referer="https://www.google.com.tr/")
             except Exception as e:
                 print(f"[Amazon TR] Sayfa yüklenemedi: {e}")
                 continue
 
-            if sayfa_no == 1:
-                print("[Amazon TR] Bot duvarı kontrol ediliyor... (Captcha çıkarsa çözmek için 10 saniyen var)")
-                time.sleep(10)
-                try:
-                    page.locator("input#sp-cc-accept").click(timeout=3000)
-                    time.sleep(1)
-                except:
-                    pass
-            else:
-                print("[Amazon TR] Sayfalar arası geçiş için bekleniyor...")
-                time.sleep(4)
+            # İnsan gibi doğal bir geçiş süresi (Captcha'yı elinle çözemeyeceğin için süreyi kısalttık)
+            time.sleep(4)
+            
+            try:
+                # Varsa çerez onayını kapat
+                page.locator("input#sp-cc-accept").click(timeout=3000)
+                time.sleep(1)
+            except:
+                pass
             
             try:
                 for _ in range(5):
@@ -59,7 +66,6 @@ def amazon_tara(max_sayfa=3):
                     title = "İsim Bulunamadı"
                     full_link = ""
                     
-                    # 1. ESNEK BAŞLIK VE LİNK YAKALAMA (H2, H3 veya sınıf bazlı arama)
                     title_el = card.find("h2") or card.find("h3") or card.find(class_=re.compile(r'title', re.IGNORECASE))
                     if title_el:
                         title = title_el.text.strip()
@@ -72,7 +78,6 @@ def amazon_tara(max_sayfa=3):
                         if '/dp/' in href or '/gp/' in href:
                             full_link = href if href.startswith('http') else "https://www.amazon.com.tr" + href
 
-                    # Eğer başlık h2/h3 içinde bulunamadıysa linkin içindeki metni başlık yap
                     if title == "İsim Bulunamadı" and link_el:
                         alt_text = link_el.text.strip()
                         if len(alt_text) > 15:
@@ -81,7 +86,6 @@ def amazon_tara(max_sayfa=3):
                     if title == "İsim Bulunamadı" or not full_link:
                         continue
 
-                    # 2. FİYAT AYIKLAMA
                     fiyat = "Fiyat Bulunamadı"
                     whole_el = card.find("span", class_="a-price-whole")
                     fraction_el = card.find("span", class_="a-price-fraction")
