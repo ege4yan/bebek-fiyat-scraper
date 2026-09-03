@@ -1,0 +1,60 @@
+[
+  {
+    "name": "Molfix 4 Numara Maxi 100 Adet Bebek Bezi",
+    "category_slug": "bebek-bezi",
+    "brand_slug": "molfix",
+    "min_price": 300,
+    "max_price": 950,
+    "stores": [
+      {"name": "Hepsiburada", "url": "https://www.hepsiburada.com/molfix-bebek-bezi-3d-4-beden-maxi-7-14-kg-100lu-ultra-firsat-paketi-p-HBV00000Q2C86", "fallback": 726.50},
+      {"name": "Amazon TR", "url": "https://www.amazon.com.tr/dp/B09Y2D71VK", "fallback": 719.90},
+      {"name": "eBebek", "url": "https://www.e-bebek.com/molfix-bebek-bezi-4-beden-maxi-ultra-firsat-paketi-7--14-kg-100-p-mol-5057001", "fallback": 799.90}
+    ]
+  },
+  {
+    "name": "Prima Premium Care 4 Numara Maxi 126 Adet Bebek Bezi",
+    "category_slug": "bebek-bezi",
+    "brand_slug": "prima",
+    "min_price": 1000,
+    "max_price": 2500,
+    "stores": [
+      {"name": "Hepsiburada", "url": "https://www.hepsiburada.com/prima-premiumcare-bebek-bezi-aylik-firsat-paketi-4-numara-126-adet-bez-p-HBV00000RFTBG", "fallback": 1576.72},
+      {"name": "Amazon TR", "url": "https://www.amazon.com.tr/dp/B0855HV1ZB", "fallback": 1649.00}
+    ]
+  },
+  {
+    "name": "Aptamil 1 Bebek Sütü 800 gr",
+    "category_slug": "bebek-mamasi",
+    "brand_slug": "aptamil",
+    "min_price": 700,
+    "max_price": 1500,
+    "stores": [
+      {"name": "Hepsiburada", "url": "https://www.hepsiburada.com/aptamil-1-bebek-sutu-800-gr-0-6-ay-pm-HB00000628G1", "fallback": 1029.90},
+      {"name": "Amazon TR", "url": "https://www.amazon.com.tr/dp/B07N4R8G12", "fallback": 1040.00},
+      {"name": "eBebek", "url": "https://www.e-bebek.com/aptamil-1-bebek-sutu-800-gr-p-apt-8001", "fallback": 1049.90}
+    ]
+  },
+  {
+    "name": "Philips Avent Natural PP Biberon 260 ml",
+    "category_slug": "biberon",
+    "brand_slug": "philips-avent",
+    "min_price": 150,
+    "max_price": 600,
+    "stores": [
+      {"name": "Hepsiburada", "url": "https://www.hepsiburada.com/philips-avent-natural-biberon-260-ml-pp-p-HBV000005WZY9", "fallback": 349.90},
+      {"name": "Amazon TR", "url": "https://www.amazon.com.tr/dp/B008MWT3J8", "fallback": 329.90},
+      {"name": "eBebek", "url": "https://www.e-bebek.com/philips-avent-natural-biberon-260-ml-p-pav-scf69317", "fallback": 359.90}
+    ]
+  },
+  {
+    "name": "Doona Yeni Nesil Bebek Arabası",
+    "category_slug": "puset",
+    "brand_slug": "doona",
+    "min_price": 12000,
+    "max_price": 25000,
+    "stores": [
+      {"name": "eBebek", "url": "https://www.e-bebek.com/doona-yeni-nesil-bebek-arabasi-p-don-1001", "fallback": 18500.00},
+      {"name": "Hepsiburada", "url": "https://www.hepsiburada.com/doona-yeni-nesil-bebek-arabasi-p-HBV00000Q8W9E", "fallback": 18999.00}
+    ]
+  }
+]
