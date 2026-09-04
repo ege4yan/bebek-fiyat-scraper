@@ -4,6 +4,7 @@ import time
 import psycopg2
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
+from playwright_stealth import stealth_sync
 
 # Şifreyi koddan sildik, artık GitHub Secrets'tan güvenle çekecek
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
