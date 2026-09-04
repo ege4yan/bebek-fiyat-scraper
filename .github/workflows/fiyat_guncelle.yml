@@ -27,4 +27,9 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          python akakce_motoru.py
+          python trendyol_motoru.py
+          python amazon_motoru.py
+          python hepsiburada_motoru.py
+          python n11_motoru.py
+
+          
