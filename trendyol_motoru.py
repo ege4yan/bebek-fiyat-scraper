@@ -5,6 +5,14 @@ import time
 import re
 import os
 from supabase import create_client, Client
+import os
+import re
+import time
+import psycopg2
+from playwright.sync_api import sync_playwright
+
+# Supabase Veritabanı Bağlantısını GitHub Secrets'tan Çekiyoruz
+SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 
 def trendyol_tara(max_sayfa=3):
     all_products = []

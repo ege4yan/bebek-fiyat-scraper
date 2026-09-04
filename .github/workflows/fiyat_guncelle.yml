@@ -20,15 +20,12 @@ jobs:
       - name: Kutuphaneleri Yukle
         run: |
           python -m pip install --upgrade pip
-          pip install playwright bs4 pandas playwright-stealth supabase
+          pip install playwright bs4 pandas psycopg2-binary
           playwright install chromium
 
       - name: Motorlari Calistir
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          python trendyol_motoru.py
-          python n11_motoru.py
-          python hepsiburada_motoru.py
-          python amazon_motoru.py
+          python akakce_motoru.py 
+          # Üstteki dosya adını (akakce_motoru.py) kendi Python dosyanın adıyla değiştirmeyi unutma
