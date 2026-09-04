@@ -1,17 +1,13 @@
-from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
-from bs4 import BeautifulSoup
-import pandas as pd
-import time
-import re
-import os
-from supabase import create_client, Client
 import os
 import re
 import time
 import psycopg2
 from playwright.sync_api import sync_playwright
 
+# Şifreyi koddan sildik, artık GitHub Secrets'tan güvenle çekecek
+SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
+
+# ... (Kategoriler ve kodun geri kalanı aynı kalacak) ...s
 # Supabase Veritabanı Bağlantısını GitHub Secrets'tan Çekiyoruz
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 
