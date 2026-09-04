@@ -2,9 +2,9 @@ name: Günlük Fiyat Güncelleme
 
 on:
   schedule:
-    # Her gece Türkiye saati ile yaklaşık 06:00'da çalışır (UTC 03:00)
-    - cron: '0 3 * * *' 
-  workflow_dispatch: # GitHub üzerinden manuel tetikleme butonu ekler
+    # Şimdilik test için 15 dakikada bir çalışacak
+    - cron: '*/15 * * * *' 
+  workflow_dispatch:
 
 jobs:
   scrape:
@@ -22,16 +22,15 @@ jobs:
     - name: Kütüphaneleri Yükle
       run: |
         python -m pip install --upgrade pip
-        pip install playwright bs4 pandas openpyxl playwright-stealth
+        pip install playwright bs4 pandas playwright-stealth supabase
         playwright install chromium
 
     - name: Motorları Çalıştır
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       run: |
         python trendyol_motoru.py
         python n11_motoru.py
-
-    - name: Excel Dosyalarını Kaydet (Artifacts)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Guncel-Fiyat-Tablolari
-        path: ./*.xlsx
+        python hepsiburada_motoru.py
+        python amazon_motoru.py

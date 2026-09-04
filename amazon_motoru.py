@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import re
+import os
+from supabase import create_client, Client
 
 def amazon_tara(max_sayfa=3):
     all_products = []
@@ -118,13 +120,36 @@ def amazon_tara(max_sayfa=3):
             
         browser.close()
 
-    if all_products:
-        df = pd.DataFrame(all_products).drop_duplicates(subset=['Ürün Linki'])
-        output_file = "amazon_urunler.xlsx"
-        df.to_excel(output_file, index=False)
-        print(f"\n✅ Amazon TR tamamlandı! Toplam {len(df)} ürün '{output_file}' dosyasına kaydedildi.")
+   if all_products:
+        # GitHub Secrets'tan URL ve KEY'i çek
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_KEY")
+        
+        if not url or not key:
+            print("❌ Supabase kimlik bilgileri eksik! Veritabanına bağlanılamadı.")
+            return
+            
+        supabase: Client = create_client(url, key)
+        
+        eklenen_guncellenen = 0
+        for urun in all_products:
+            data = {
+                "platform": urun["Platform"],
+                "kategori": urun["Kategori"],
+                "urun_adi": urun["Ürün Adı"],
+                "fiyat": urun["Fiyat"],
+                "urun_linki": urun["Ürün Linki"]
+            }
+            try:
+                # on_conflict="urun_linki" parametresi, aynı linkteki ürünün sadece fiyatını günceller
+                supabase.table("urunler").upsert(data, on_conflict="urun_linki").execute()
+                eklenen_guncellenen += 1
+            except Exception as e:
+                print(f"Supabase yazma hatası ({urun['Platform']}): {e}")
+                
+        print(f"\n✅ {eklenen_guncellenen} ürün doğrudan Supabase veritabanına basıldı.")
     else:
-        print("\n❌ Amazon TR'den ürün çekilemedi.")
+        print("\n❌ Ürün bulunamadı, veritabanı işlemi atlandı.")
 
 if __name__ == "__main__":
     amazon_tara(max_sayfa=3)
