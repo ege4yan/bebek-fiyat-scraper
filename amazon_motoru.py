@@ -126,10 +126,10 @@ def amazon_tara(max_sayfa=3):
             
         browser.close()
 
-   if all_products:
-        # GitHub Secrets'tan URL ve KEY'i çek
-        url = os.environ.get("SUPABASE_URL")
-        key = os.environ.get("SUPABASE_KEY")
+                    if all_products:
+                        # GitHub Secrets'tan URL ve KEY'i çek
+                         url = os.environ.get("SUPABASE_URL")
+                         key = os.environ.get("SUPABASE_KEY")
         
         if not url or not key:
             print("❌ Supabase kimlik bilgileri eksik! Veritabanına bağlanılamadı.")
