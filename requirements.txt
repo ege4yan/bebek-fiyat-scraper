@@ -1,4 +1,6 @@
-flask
-requests
-gunicorn
+playwright
+playwright-stealth
+beautifulsoup4
+pandas
+supabase
 psycopg2-binary
