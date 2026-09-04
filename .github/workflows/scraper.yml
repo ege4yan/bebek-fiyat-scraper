@@ -1,139 +1,30 @@
-﻿import re
-import time
-import psycopg2
-from playwright.sync_api import sync_playwright
+name: Gunluk Fiyat Guncelleme
 
-# Supabase Veritabanı Bağlantısı
-SUPABASE_DB_URL = "postgresql://postgres.bwmcjllhzfcqncpefixp:ZggkAkebj4JA8gBt@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres"
+on:
+  schedule:
+    - cron: '30 * * * *'
+  workflow_dispatch:
 
-CATEGORIES = [
-    {
-        "name": "Bebek Bezi",
-        "slug": "bebek-bezi",
-        "url": "https://www.akakce.com/bebek-bezi.html"
-    },
-    {
-        "name": "Bebek Maması",
-        "slug": "bebek-mamasi",
-        "url": "https://www.akakce.com/bebek-mamasi.html"
-    },
-    {
-        "name": "Bebek Oyuncakları",
-        "slug": "bebek-oyuncak",
-        "url": "https://www.akakce.com/bebek-oyuncaklari.html"
-    }
-]
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu Cek
+        uses: actions/checkout@v4
 
-def save_to_database(product_name, category_slug, brand_slug, store_name, price, product_url):
-    if not price or price <= 0:
-        return
-    try:
-        conn = psycopg2.connect(SUPABASE_DB_URL)
-        cur = conn.cursor()
-        slug = re.sub(r'[^a-z0-9]+', '-', product_name.lower()).strip('-')[:80]
+      - name: Python Kurulumu
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-        query = """
-            INSERT INTO product_prices (product_name, category_slug, brand_slug, store_name, price, product_url, slug)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (slug, store_name) 
-            DO UPDATE SET 
-                price = EXCLUDED.price,
-                product_url = EXCLUDED.product_url,
-                updated_at = NOW();
-        """
-        cur.execute(query, (product_name, category_slug, brand_slug, store_name, price, product_url, slug))
-        conn.commit()
-        cur.close()
-        conn.close()
-        print(f"    💾 [DB Eklendi] {store_name} | {product_name[:40]} -> ₺{price}")
-    except Exception as e:
-        print(f"    ❌ DB Hatası: {e}")
+      - name: Kutuphaneleri Yukle
+        run: |
+          python -m pip install --upgrade pip
+          pip install curl_cffi psycopg2-binary playwright
+          playwright install chromium
 
-def crawl_all():
-    print("🚀 Akakçe Tabanlı Otomatik Kategori & Fiyat Avcısı Başlatıldı!\n")
-    
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            args=["--disable-blink-features=AutomationControlled", "--no-sandbox"]
-        )
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        )
-        page = context.new_page()
-
-        for cat in CATEGORIES:
-            print(f"📂 Kategori Taranıyor: {cat['name']} ({cat['url']})")
-            try:
-                page.goto(cat["url"], timeout=45000, wait_until="load")
-                page.wait_for_timeout(3000)
-
-                # Akakçe sayfasından ürün adı, fiyat ve URL'leri çek
-                products = page.evaluate('''() => {
-                    let results = [];
-                    // Tüm olası ürün elemanlarını yakala
-                    let elements = document.querySelectorAll('li[data-pr], li.pn_v8, ul#pL > li, [id^="p_"]');
-                    
-                    elements.forEach(el => {
-                        let aTag = el.querySelector('a');
-                        let titleTag = el.querySelector('h3, .pn_v8, span.pn_v8, b');
-                        let priceTag = el.querySelector('.pt_v8, .pr_v8, span.price, b.pt_v8');
-
-                        let title = titleTag ? titleTag.innerText.trim() : (aTag ? aTag.getAttribute('title') || '' : '');
-                        let priceText = priceTag ? priceTag.innerText.trim() : '';
-                        let link = aTag ? aTag.getAttribute('href') : '';
-
-                        if (title && priceText && (priceText.includes('TL') || priceText.includes('₺') || /\\d/.test(priceText))) {
-                            results.push({
-                                title: title,
-                                priceText: priceText,
-                                url: link || ''
-                            });
-                        }
-                    });
-                    return results.slice(0, 15);
-                }''')
-
-                print(f"  ✨ {len(products)} adet ürün ayrıştırıldı!")
-
-                for item in products:
-                    # Başlık temizliği
-                    clean_title = re.sub(r'\s+Fiyatları.*$', '', item["title"], flags=re.IGNORECASE)
-                    clean_title = re.sub(r'^\d+\.\s*', '', clean_title).strip()
-                    if not clean_title:
-                        continue
-                    
-                    brand = clean_title.split()[0].lower()
-
-                    # Fiyat temizliği
-                    price_digits = re.sub(r'[^\d,\.]', '', item["priceText"])
-                    if ',' in price_digits:
-                        clean_price = price_digits.replace('.', '').replace(',', '.')
-                    else:
-                        clean_price = price_digits
-
-                    # Link formatı
-                    raw_url = item["url"]
-                    if raw_url.startswith("http"):
-                        p_url = raw_url
-                    elif raw_url:
-                        p_url = f"https://www.akakce.com{raw_url}"
-                    else:
-                        p_url = cat["url"]
-
-                    try:
-                        f_price = float(clean_price)
-                        save_to_database(clean_title, cat["slug"], brand, "Piyasa En Ucuz", f_price, p_url)
-                    except ValueError:
-                        pass
-
-            except Exception as e:
-                print(f"  ❌ Kategori Hatası ({cat['name']}): {e}")
-
-            print("-" * 50)
-
-        browser.close()
-    print("\n🎉 Tüm kategoriler başarıyla tarandı ve Supabase'e kaydedildi!")
-
-if __name__ == "__main__":
-    crawl_all()
+      - name: Motorlari Calistir
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          python scraper.pyv
