@@ -27,4 +27,4 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          python scraper.pyv
+          python scraper.py
