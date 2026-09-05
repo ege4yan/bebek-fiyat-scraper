@@ -39,7 +39,7 @@ def n11_tara(max_sayfa=3):
             if sayfa_no == 1:
                 try:
                     page.locator("text='Kabul Et'").first.click(timeout=5000)
-                    time.sleep(1)
+                    time.sleep(8)
                 except:
                     pass
             

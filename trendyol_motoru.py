@@ -30,7 +30,7 @@ def trendyol_tara(max_sayfa=3):
             if sayfa_no == 1:
                 try:
                     page.locator("text='Tüm Tanımlama Bilgilerini Kabul Et'").click(timeout=5000)
-                    time.sleep(1)
+                    time.sleep(8)
                 except:
                     pass
             

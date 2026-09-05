@@ -40,7 +40,7 @@ def amazon_tara(max_sayfa=3):
             
             try:
                 # Sanki linke Google'dan tıklamışız gibi yapıyoruz (referer)
-                page.goto(url, timeout=60000, wait_until="domcontentloaded", referer="https://www.google.com.tr/")
+                page.goto(url, timeout=60000, wait_until="domcontentloaded")
             except Exception as e:
                 print(f"[Amazon TR] Sayfa yüklenemedi: {e}")
                 continue

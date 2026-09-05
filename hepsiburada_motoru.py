@@ -41,7 +41,7 @@ def hepsiburada_tara(max_sayfa=3):
             
             try:
                 # Referer ekleyerek sanki Google'dan geliyormuşuz izlenimi veriyoruz
-                page.goto(url, timeout=60000, wait_until="domcontentloaded", referer="https://www.google.com.tr/")
+                page.goto(url, timeout=60000, wait_until="domcontentloaded")
             except Exception as e:
                 print(f"[Hepsiburada] Sayfa yüklenemedi: {e}")
                 continue
