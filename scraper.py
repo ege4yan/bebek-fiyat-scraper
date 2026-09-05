@@ -6,7 +6,6 @@ from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from playwright_stealth import stealth_sync
 
-# Şifreyi koddan sildik, artık GitHub Secrets'tan güvenle çekecek
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 
 def amazon_tara(max_sayfa=3):
@@ -14,7 +13,8 @@ def amazon_tara(max_sayfa=3):
     base_url = "https://www.amazon.com.tr/s?k=bebek+bezi&rh=n%3A12466391031"
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, slow_mo=70)
+        # headless=False yaptık, gerçek tarayıcı gibi açılacak
+        browser = p.chromium.launch(headless=False, slow_mo=70)
         context = browser.new_context(
             viewport={'width': 1920, 'height': 1080},
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -26,15 +26,16 @@ def amazon_tara(max_sayfa=3):
         
         for sayfa_no in range(1, max_sayfa + 1):
             url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
-            print(f"\n[Amazon TR] Sayfa {sayfa_no} taranıyor: {url}")
+            print(f"\n[Amazon TR] Sayfa {sayfa_no} taranıyor...")
             
             try:
-                page.goto(url, timeout=60000, wait_until="domcontentloaded", referer="https://www.google.com.tr/")
+                page.goto(url, timeout=60000, wait_until="domcontentloaded")
+                print(f"[Amazon TR] Karşılaşılan Ekran: {page.title()}") # Ne gördüğümüzü loglayacak
             except Exception as e:
                 print(f"[Amazon TR] Sayfa yüklenemedi: {e}")
                 continue
 
-            time.sleep(4)
+            time.sleep(5)
             
             try:
                 page.locator("input#sp-cc-accept").click(timeout=3000)
@@ -54,14 +55,13 @@ def amazon_tara(max_sayfa=3):
             if not cards:
                 cards = soup.find_all("div", class_="s-result-item")
                 
-            print(f"[Amazon TR] DOM'da {len(cards)} adet ürün kutusu tespit edildi.")
+            print(f"[Amazon TR] DOM'da {len(cards)} ürün tespit edildi.")
             eklenen_urun = 0
             
             for card in cards:
                 try:
                     title = "İsim Bulunamadı"
                     full_link = ""
-                    
                     title_el = card.find("h2") or card.find("h3") or card.find(class_=re.compile(r'title', re.IGNORECASE))
                     if title_el:
                         title = title_el.text.strip()
@@ -118,7 +118,7 @@ def hepsiburada_tara(max_sayfa=3):
     base_url = "https://www.hepsiburada.com/bebek-bezleri-c-60001049"
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, slow_mo=100)
+        browser = p.chromium.launch(headless=False, slow_mo=100)
         context = browser.new_context(
             viewport={'width': 1920, 'height': 1080},
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -132,15 +132,16 @@ def hepsiburada_tara(max_sayfa=3):
         
         for sayfa_no in range(1, max_sayfa + 1):
             url = f"{base_url}?sayfa={sayfa_no}" if sayfa_no > 1 else base_url
-            print(f"\n[Hepsiburada] Sayfa {sayfa_no} taranıyor: {url}")
+            print(f"\n[Hepsiburada] Sayfa {sayfa_no} taranıyor...")
             
             try:
-                page.goto(url, timeout=60000, wait_until="domcontentloaded", referer="https://www.google.com.tr/")
+                page.goto(url, timeout=60000, wait_until="domcontentloaded")
+                print(f"[Hepsiburada] Karşılaşılan Ekran: {page.title()}")
             except Exception as e:
                 print(f"[Hepsiburada] Sayfa yüklenemedi: {e}")
                 continue
 
-            time.sleep(4)
+            time.sleep(5)
             
             try:
                 for _ in range(5):
@@ -154,7 +155,7 @@ def hepsiburada_tara(max_sayfa=3):
             if not cards:
                 cards = soup.find_all("li", attrs={"data-index": True})
 
-            print(f"[Hepsiburada] DOM'da {len(cards)} adet ürün kutusu tespit edildi.")
+            print(f"[Hepsiburada] DOM'da {len(cards)} ürün tespit edildi.")
             eklenen_urun = 0
             
             for card in cards:
@@ -214,23 +215,24 @@ def n11_tara(max_sayfa=3):
     base_url = "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi" 
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, slow_mo=50)
+        browser = p.chromium.launch(headless=False, slow_mo=50)
         context = browser.new_context(viewport={'width': 1920, 'height': 1080})
         page = context.new_page()
         stealth_sync(page)
         
         for sayfa_no in range(1, max_sayfa + 1):
             url = f"{base_url}?pg={sayfa_no}" if sayfa_no > 1 else base_url
-            print(f"\n[N11] Sayfa {sayfa_no} taranıyor: {url}")
+            print(f"\n[N11] Sayfa {sayfa_no} taranıyor...")
             
             try:
                 page.goto(url, timeout=60000, wait_until="domcontentloaded")
+                print(f"[N11] Karşılaşılan Ekran: {page.title()}")
             except Exception as e:
                 print(f"[N11] Sayfa yüklenemedi: {e}")
                 continue
                 
             if "Aradığın sayfa bulunamadı" in page.content():
-                print("[N11] 404 Hata Sayfası - Link geçersiz veya kategori sonu.")
+                print("[N11] 404 Hata Sayfası.")
                 break
                 
             if sayfa_no == 1:
@@ -245,7 +247,7 @@ def n11_tara(max_sayfa=3):
                     page.mouse.wheel(0, 1500)
                     time.sleep(2)
             except Exception:
-                print("[N11] Kaydırma sırasında hata, tarama devam ediyor...")
+                pass
                 
             soup = BeautifulSoup(page.content(), 'html.parser')
             links = soup.find_all('a', href=True)
@@ -278,11 +280,9 @@ def n11_tara(max_sayfa=3):
                             'ÜCRETSİZ KARGO', 'SÜPER', 'SEPETTE', 'günün en düşük fiyatı!', 
                             'Hızlı Teslimat', 'Sponsorlu', 'Yeni', 'Tükendi', 'Sepete Ekle'
                         ]
-                        
                         title = raw_title
                         for kelime in silinecekler:
                             title = re.sub(rf'(?i){re.escape(kelime)}', '', title)
-                            
                         title = re.sub(r'\s+', ' ', title).strip()
                         
                         if len(title) > 10:
@@ -304,21 +304,23 @@ def trendyol_tara(max_sayfa=3):
     base_url = "https://www.trendyol.com/bebek-bezi-x-c1363"
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, slow_mo=50)
+        browser = p.chromium.launch(headless=False, slow_mo=50)
         context = browser.new_context(viewport={'width': 1920, 'height': 1080})
         page = context.new_page()
         stealth_sync(page)
         
         for sayfa_no in range(1, max_sayfa + 1):
             url = f"{base_url}?pi={sayfa_no}" if sayfa_no > 1 else base_url
-            print(f"\n[Trendyol] Sayfa {sayfa_no} taranıyor: {url}")
+            print(f"\n[Trendyol] Sayfa {sayfa_no} taranıyor...")
             
             try:
                 page.goto(url, timeout=60000, wait_until="domcontentloaded")
+                print(f"[Trendyol] Karşılaşılan Ekran: {page.title()}")
             except Exception as e:
                 print(f"[Trendyol] Sayfa yüklenemedi: {e}")
                 continue
             
+            time.sleep(4)
             if sayfa_no == 1:
                 try:
                     page.locator("text='Tüm Tanımlama Bilgilerini Kabul Et'").click(timeout=5000)
@@ -383,7 +385,6 @@ def save_to_db(all_products):
         
         for urun in all_products:
             try:
-                # urunler tablosu için düzeltilmiş SQL komutu
                 query = """
                     INSERT INTO urunler (platform, kategori, urun_adi, fiyat, urun_linki)
                     VALUES (%s, %s, %s, %s, %s)
@@ -392,17 +393,11 @@ def save_to_db(all_products):
                         fiyat = EXCLUDED.fiyat,
                         urun_adi = EXCLUDED.urun_adi;
                 """
-                cur.execute(query, (
-                    urun["Platform"], 
-                    urun["Kategori"], 
-                    urun["Ürün Adı"], 
-                    urun["Fiyat"], 
-                    urun["Ürün Linki"]
-                ))
+                cur.execute(query, (urun["Platform"], urun["Kategori"], urun["Ürün Adı"], urun["Fiyat"], urun["Ürün Linki"]))
                 eklenen += 1
             except Exception as e:
                 print(f"Supabase yazma hatası ({urun['Platform']}): {e}")
-                conn.rollback() # Hata olan ürünü atla, sistemi çökertmeden sonrakine geç
+                conn.rollback()
                 continue
                 
         conn.commit()
@@ -414,11 +409,9 @@ def save_to_db(all_products):
         print(f"❌ Veritabanı bağlantı hatası: {e}")
 
 if __name__ == "__main__":
-    print("🚀 Akıllı Tarama Motorları Başlatılıyor...\n")
+    print("🚀 Akıllı Tarama Motorları Xvfb ile Başlatılıyor...\n")
     toplam_urunler = []
     
-    # Tüm platformları sırayla tek dosyada çalıştırıyoruz
-    # Test aşamasında olduğumuz için max_sayfa=1 ile bıraktım, dilersen artırabilirsin
     toplam_urunler.extend(trendyol_tara(1))
     toplam_urunler.extend(amazon_tara(1))
     toplam_urunler.extend(hepsiburada_tara(1))
