@@ -2,8 +2,9 @@
 import re
 import time
 import psycopg2
-from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
+from curl_cffi import requests
+from playwright.sync_api import sync_playwright
 from playwright_stealth import stealth_sync
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
@@ -12,80 +13,37 @@ def amazon_tara(max_sayfa=3):
     all_products = []
     base_url = "https://www.amazon.com.tr/s?k=bebek+bezi&rh=n%3A12466391031"
     
-    with sync_playwright() as p:
-        # headless=False yaptık, gerçek tarayıcı gibi açılacak
-        browser = p.chromium.launch(headless=False, slow_mo=70)
-        context = browser.new_context(
-            viewport={'width': 1920, 'height': 1080},
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-            locale="tr-TR",
-            timezone_id="Europe/Istanbul"
-        )
-        page = context.new_page()
-        stealth_sync(page)
+    for sayfa_no in range(1, max_sayfa + 1):
+        url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
+        print(f"\n[Amazon TR] Sayfa {sayfa_no} taranıyor (curl_cffi)...")
         
-        for sayfa_no in range(1, max_sayfa + 1):
-            url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
-            print(f"\n[Amazon TR] Sayfa {sayfa_no} taranıyor...")
+        try:
+            # Gerçek Chrome 120 kimliğine bürünüp bot kalkanını aşıyoruz
+            res = requests.get(url, impersonate="chrome120", timeout=15)
+            soup = BeautifulSoup(res.text, 'html.parser')
             
-            try:
-                page.goto(url, timeout=60000, wait_until="domcontentloaded")
-                print(f"[Amazon TR] Karşılaşılan Ekran: {page.title()}") # Ne gördüğümüzü loglayacak
-            except Exception as e:
-                print(f"[Amazon TR] Sayfa yüklenemedi: {e}")
-                continue
-
-            time.sleep(5)
-            
-            try:
-                page.locator("input#sp-cc-accept").click(timeout=3000)
-                time.sleep(1)
-            except:
-                pass
-            
-            try:
-                for _ in range(5):
-                    page.mouse.wheel(0, 1000)
-                    time.sleep(1.5)
-            except:
-                pass
-
-            soup = BeautifulSoup(page.content(), 'html.parser')
             cards = soup.find_all("div", attrs={"data-component-type": "s-search-result"})
             if not cards:
                 cards = soup.find_all("div", class_="s-result-item")
                 
-            print(f"[Amazon TR] DOM'da {len(cards)} ürün tespit edildi.")
             eklenen_urun = 0
             
             for card in cards:
                 try:
-                    title = "İsim Bulunamadı"
-                    full_link = ""
                     title_el = card.find("h2") or card.find("h3") or card.find(class_=re.compile(r'title', re.IGNORECASE))
-                    if title_el:
-                        title = title_el.text.strip()
-                        link_el = title_el.find("a") or card.find("a", class_="a-link-normal")
-                    else:
-                        link_el = card.find("a", class_="a-link-normal")
-                        
+                    title = title_el.text.strip() if title_el else "İsim Bulunamadı"
+                    
+                    link_el = card.find("a", class_="a-link-normal")
+                    full_link = ""
                     if link_el and 'href' in link_el.attrs:
                         href = link_el['href']
                         if '/dp/' in href or '/gp/' in href:
                             full_link = href if href.startswith('http') else "https://www.amazon.com.tr" + href
-
-                    if title == "İsim Bulunamadı" and link_el:
-                        alt_text = link_el.text.strip()
-                        if len(alt_text) > 15:
-                            title = alt_text
-
-                    if title == "İsim Bulunamadı" or not full_link:
-                        continue
-
-                    fiyat = "Fiyat Bulunamadı"
+                    
                     whole_el = card.find("span", class_="a-price-whole")
                     fraction_el = card.find("span", class_="a-price-fraction")
                     
+                    fiyat = "Fiyat Bulunamadı"
                     if whole_el:
                         w_text = whole_el.text.strip().replace(',', '').replace('.', '')
                         f_text = fraction_el.text.strip() if fraction_el else "00"
@@ -94,10 +52,10 @@ def amazon_tara(max_sayfa=3):
                         offscreen = card.find("span", class_="a-offscreen")
                         if offscreen:
                             fiyat = offscreen.text.strip().replace('₺', 'TL')
-
+                            
                     fiyat = re.sub(r'\s+', ' ', fiyat).strip()
                     
-                    if "Fiyat Bulunamadı" not in fiyat:
+                    if title != "İsim Bulunamadı" and "Fiyat Bulunamadı" not in fiyat:
                         all_products.append({
                             "Platform": "Amazon TR",
                             "Kategori": "Bebek Bezi",
@@ -108,10 +66,12 @@ def amazon_tara(max_sayfa=3):
                         eklenen_urun += 1
                 except Exception:
                     continue
-                    
             print(f"[Amazon TR] Sayfa {sayfa_no} üzerinden {eklenen_urun} ürün yakalandı.")
-        browser.close()
+        except Exception as e:
+            print(f"[Amazon TR] Hata: {e}")
+            
     return all_products
+
 
 def hepsiburada_tara(max_sayfa=3):
     all_products = []
@@ -210,46 +170,19 @@ def hepsiburada_tara(max_sayfa=3):
         browser.close()
     return all_products
 
+
 def n11_tara(max_sayfa=3):
     all_products = []
-    base_url = "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi" 
+    base_url = "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi"
     
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, slow_mo=50)
-        context = browser.new_context(viewport={'width': 1920, 'height': 1080})
-        page = context.new_page()
-        stealth_sync(page)
+    for sayfa_no in range(1, max_sayfa + 1):
+        url = f"{base_url}?pg={sayfa_no}" if sayfa_no > 1 else base_url
+        print(f"\n[N11] Sayfa {sayfa_no} taranıyor (curl_cffi)...")
         
-        for sayfa_no in range(1, max_sayfa + 1):
-            url = f"{base_url}?pg={sayfa_no}" if sayfa_no > 1 else base_url
-            print(f"\n[N11] Sayfa {sayfa_no} taranıyor...")
+        try:
+            res = requests.get(url, impersonate="chrome120", timeout=15)
+            soup = BeautifulSoup(res.text, 'html.parser')
             
-            try:
-                page.goto(url, timeout=60000, wait_until="domcontentloaded")
-                print(f"[N11] Karşılaşılan Ekran: {page.title()}")
-            except Exception as e:
-                print(f"[N11] Sayfa yüklenemedi: {e}")
-                continue
-                
-            if "Aradığın sayfa bulunamadı" in page.content():
-                print("[N11] 404 Hata Sayfası.")
-                break
-                
-            if sayfa_no == 1:
-                try:
-                    page.locator("text='Kabul Et'").first.click(timeout=5000)
-                    time.sleep(1)
-                except:
-                    pass
-            
-            try:
-                for _ in range(4):
-                    page.mouse.wheel(0, 1500)
-                    time.sleep(2)
-            except Exception:
-                pass
-                
-            soup = BeautifulSoup(page.content(), 'html.parser')
             links = soup.find_all('a', href=True)
             eklenen_urun = 0
             
@@ -276,16 +209,13 @@ def n11_tara(max_sayfa=3):
                         raw_title_blocks = [t for t in text_blocks if 'TL' not in t and '/' not in t]
                         raw_title = " ".join(raw_title_blocks)
                         
-                        silinecekler = [
-                            'ÜCRETSİZ KARGO', 'SÜPER', 'SEPETTE', 'günün en düşük fiyatı!', 
-                            'Hızlı Teslimat', 'Sponsorlu', 'Yeni', 'Tükendi', 'Sepete Ekle'
-                        ]
+                        silinecekler = ['ÜCRETSİZ KARGO', 'SÜPER', 'SEPETTE', 'günün en düşük fiyatı!', 'Hızlı Teslimat', 'Sponsorlu', 'Yeni', 'Tükendi', 'Sepete Ekle']
                         title = raw_title
                         for kelime in silinecekler:
                             title = re.sub(rf'(?i){re.escape(kelime)}', '', title)
                         title = re.sub(r'\s+', ' ', title).strip()
                         
-                        if len(title) > 10:
+                        if len(title) > 10 and "Fiyat" not in toplam_fiyat:
                             all_products.append({
                                 "Platform": "N11",
                                 "Kategori": "Bebek Bezi",
@@ -294,80 +224,56 @@ def n11_tara(max_sayfa=3):
                                 "Ürün Linki": full_link
                             })
                             eklenen_urun += 1
-            
             print(f"[N11] Sayfa {sayfa_no} üzerinden {eklenen_urun} ürün yakalandı.")
-        browser.close()
+        except Exception as e:
+            print(f"[N11] Hata: {e}")
+            
     return all_products
+
 
 def trendyol_tara(max_sayfa=3):
     all_products = []
     base_url = "https://www.trendyol.com/bebek-bezi-x-c1363"
     
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, slow_mo=50)
-        context = browser.new_context(viewport={'width': 1920, 'height': 1080})
-        page = context.new_page()
-        stealth_sync(page)
+    for sayfa_no in range(1, max_sayfa + 1):
+        url = f"{base_url}?pi={sayfa_no}" if sayfa_no > 1 else base_url
+        print(f"\n[Trendyol] Sayfa {sayfa_no} taranıyor (curl_cffi)...")
         
-        for sayfa_no in range(1, max_sayfa + 1):
-            url = f"{base_url}?pi={sayfa_no}" if sayfa_no > 1 else base_url
-            print(f"\n[Trendyol] Sayfa {sayfa_no} taranıyor...")
+        try:
+            res = requests.get(url, impersonate="chrome120", timeout=15)
+            soup = BeautifulSoup(res.text, 'html.parser')
             
-            try:
-                page.goto(url, timeout=60000, wait_until="domcontentloaded")
-                print(f"[Trendyol] Karşılaşılan Ekran: {page.title()}")
-            except Exception as e:
-                print(f"[Trendyol] Sayfa yüklenemedi: {e}")
-                continue
-            
-            time.sleep(4)
-            if sayfa_no == 1:
-                try:
-                    page.locator("text='Tüm Tanımlama Bilgilerini Kabul Et'").click(timeout=5000)
-                    time.sleep(1)
-                except:
-                    pass
-            
-            for _ in range(3):
-                page.mouse.wheel(0, 1500)
-                time.sleep(2)
-                
-            soup = BeautifulSoup(page.content(), 'html.parser')
-            links = soup.find_all('a', href=True)
+            cards = soup.find_all("div", class_="p-card-wrppr")
             eklenen_urun = 0
             
-            for link in links:
-                href = link['href']
-                if '-p-' in href and '/yorumlar' not in href:
-                    text_blocks = list(link.stripped_strings)
-                    fiyatlar = [t for t in text_blocks if 'TL' in t]
+            for card in cards:
+                try:
+                    title_el = card.find("span", class_="prdct-desc-cntnr-name")
+                    title = title_el.text.strip() if title_el else "İsim Bulunamadı"
                     
-                    if fiyatlar:
-                        full_link = "https://www.trendyol.com" + href if href.startswith('/') else href
-                        guncel_fiyat = fiyatlar[-1]
-                        
-                        stop_words = [
-                            'TL', 'Sepete Ekle', 'Kargo Bedava', 'Hızlı Teslimat', 
-                            'Sponsorlu', 'Peşin Fiyatına', 'Son 30 Günün En Düşük Fiyatı', 
-                            'Avantajlı Ürün', 'Kuponlu Ürün', "Trendyol Plus'a Özel", "Plus'a Özel"
-                        ]
-                        
-                        name_parts = [t for t in text_blocks if not any(sw.lower() in t.lower() for sw in stop_words)]
-                        title = " ".join(name_parts[:4]) if name_parts else "İsim Bulunamadı"
-                        title = re.sub(r'\s+', ' ', title).strip()
-                        
+                    price_el = card.find("div", class_="prc-box-dscntd")
+                    fiyat = price_el.text.strip() if price_el else "Fiyat Bulunamadı"
+                    
+                    link_el = card.find("a", href=True)
+                    full_link = ("https://www.trendyol.com" + link_el['href']) if link_el else ""
+                    
+                    if title != "İsim Bulunamadı" and "Fiyat Bulunamadı" not in fiyat:
                         all_products.append({
                             "Platform": "Trendyol",
                             "Kategori": "Bebek Bezi",
                             "Ürün Adı": title,
-                            "Fiyat": guncel_fiyat,
+                            "Fiyat": fiyat,
                             "Ürün Linki": full_link
                         })
                         eklenen_urun += 1
-                        
+                except Exception:
+                    continue
             print(f"[Trendyol] Sayfa {sayfa_no} üzerinden {eklenen_urun} ürün yakalandı.")
-        browser.close()
+        except Exception as e:
+            print(f"[Trendyol] Hata: {e}")
+            
     return all_products
+
 
 def save_to_db(all_products):
     if not all_products:
@@ -408,8 +314,9 @@ def save_to_db(all_products):
     except Exception as e:
         print(f"❌ Veritabanı bağlantı hatası: {e}")
 
+
 if __name__ == "__main__":
-    print("🚀 Akıllı Tarama Motorları Xvfb ile Başlatılıyor...\n")
+    print("🚀 Akıllı Tarama Motorları Xvfb ve Curl_cffi ile Başlatılıyor...\n")
     toplam_urunler = []
     
     toplam_urunler.extend(trendyol_tara(1))
