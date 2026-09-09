@@ -250,7 +250,7 @@
             return simdi.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
         }
 
-        function urunKimligiCikar(baslik) {
+       function urunKimligiCikar(baslik) {
             if (!baslik) baslik = "Bilinmeyen Ürün"; 
             let k = baslik.toLowerCase();
 
@@ -265,7 +265,11 @@
             let numaraMatch = k.match(/([1-7])\s*(numara|beden|boy)/);
             let numara = numaraMatch ? numaraMatch[1] : '?';
             
-            let adetMatch = k.match(/(\d{1,4})\s*(adet|'l|li|lu|lü|yaprak|parça|pcs)/);
+            // YENİ DÜZELTME: Önce "82 adet, 100 yaprak" gibi kesin miktarları ara. Bulamazsan "2'li" paket ismine bak.
+            let adetMatch = k.match(/(\d{1,4})\s*(adet|yaprak|parça|pcs)/);
+            if (!adetMatch) {
+                adetMatch = k.match(/(\d{1,4})\s*('l|li|lu|lü)/);
+            }
             let adet = adetMatch ? parseInt(adetMatch[1]) : '?';
             
             let tur = 'Standart Bez';

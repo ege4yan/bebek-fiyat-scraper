@@ -9,10 +9,22 @@ from bs4 import BeautifulSoup
 SUPABASE_DB_URL = "postgresql://postgres.bbemkqegyvbktqjbjqrr:EgeKuzen2026@aws-1-eu-west-1.pooler.supabase.com:6543/postgres"
 
 def fiyati_temizle(fiyat_metni):
-    """Sadece net rakamı alır, kargo/taksit yazılarını engeller."""
-    fiyat_metni = re.sub(r'[^\d,.]', '', fiyat_metni).strip('.,')
+    """
+    LAZERLİ KESİCİ: Metnin içindeki harfleri silerken rakamları birbirine katmaz.
+    Sadece İLK mantıklı fiyat rakamını (örn: 367,00 veya 1.250,99) cımbızla çeker.
+    """
     if not fiyat_metni: return ""
-    return fiyat_metni + " TL"
+    
+    # Rakam, nokta ve virgül içeren ilk standart fiyat şablonunu bul
+    match = re.search(r'(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?)', fiyat_metni.replace(' ', ''))
+    
+    if match:
+        bulunan_fiyat = match.group(1)
+        # Sadece virgül veya sadece nokta kalmışsa temizle
+        bulunan_fiyat = bulunan_fiyat.strip('.,')
+        return bulunan_fiyat + " TL"
+    
+    return ""
 
 def scroll_page(page):
     """Sayfayı kaydırarak hayalet resimlerin (Lazy Load) yüklenmesini zorlar."""
@@ -31,8 +43,10 @@ def amazon_tara(max_sayfa=1):
             url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
             print(f"\n[Amazon TR] Sayfa {sayfa_no} taranıyor...")
             try:
-                page.goto(url, timeout=60000)
+                page.goto("https://www.amazon.com.tr", timeout=45000)
                 time.sleep(2)
+                page.goto(url, timeout=60000)
+                time.sleep(3)
                 scroll_page(page)
             except: pass
             soup = BeautifulSoup(page.content(), 'html.parser')
@@ -52,13 +66,15 @@ def amazon_tara(max_sayfa=1):
                     if not whole: continue
                     
                     fiyat_metni = f"{whole.text.strip().replace(',', '').replace('.', '')},{fraction.text.strip() if fraction else '00'}"
+                    temiz_fiyat = fiyati_temizle(fiyat_metni)
                     
-                    all_products.append({
-                        "Platform": "Amazon TR", "Kategori": "Bebek Bezi",
-                        "Ürün Adı": title_el.text.strip(), "Fiyat": fiyati_temizle(fiyat_metni), 
-                        "Ürün Linki": "https://www.amazon.com.tr" + link_el.get('href', ''), "Resim": ""
-                    })
-                    eklenen += 1
+                    if temiz_fiyat:
+                        all_products.append({
+                            "Platform": "Amazon TR", "Kategori": "Bebek Bezi",
+                            "Ürün Adı": title_el.text.strip(), "Fiyat": temiz_fiyat, 
+                            "Ürün Linki": "https://www.amazon.com.tr" + link_el.get('href', ''), "Resim": ""
+                        })
+                        eklenen += 1
                 except: continue
             print(f"[Amazon TR] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
         browser.close()
@@ -76,7 +92,7 @@ def trendyol_tara(max_sayfa=1):
             print(f"\n[Trendyol] Sayfa {sayfa_no} taranıyor...")
             try:
                 page.goto(url, timeout=60000)
-                try: page.wait_for_selector('.prc-box-dscntd', timeout=5000) # Fiyatın yüklenmesini zorla bekle
+                try: page.wait_for_selector('.prc-box-dscntd', timeout=5000)
                 except: pass
                 scroll_page(page)
                 soup = BeautifulSoup(page.content(), 'html.parser')
@@ -91,10 +107,11 @@ def trendyol_tara(max_sayfa=1):
                     name_el = card.find('span', class_='prdct-desc-cntnr-name')
                     title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
                     
-                    if len(title) > 5:
+                    temiz_fiyat = fiyati_temizle(price_el.text)
+                    if len(title) > 5 and temiz_fiyat:
                         all_products.append({
                             "Platform": "Trendyol", "Kategori": "Bebek Bezi", 
-                            "Ürün Adı": title, "Fiyat": fiyati_temizle(price_el.text), 
+                            "Ürün Adı": title, "Fiyat": temiz_fiyat, 
                             "Ürün Linki": "https://www.trendyol.com" + link_el['href'], "Resim": ""
                         })
                         eklenen += 1
@@ -127,10 +144,11 @@ def n11_tara(max_sayfa=1):
                     if not link_el or not price_el: continue
                     
                     title = link_el.get('title', '').strip()
-                    if len(title) > 10:
+                    temiz_fiyat = fiyati_temizle(price_el.text)
+                    if len(title) > 10 and temiz_fiyat:
                         all_products.append({
                             "Platform": "N11", "Kategori": "Bebek Bezi", 
-                            "Ürün Adı": title, "Fiyat": fiyati_temizle(price_el.text), 
+                            "Ürün Adı": title, "Fiyat": temiz_fiyat, 
                             "Ürün Linki": link_el.get('href', ''), "Resim": ""
                         })
                         eklenen += 1
@@ -151,7 +169,6 @@ def hepsiburada_tara(max_sayfa=1):
             print(f"\n[Hepsiburada] Sayfa {sayfa_no} taranıyor...")
             try:
                 page.goto(url, timeout=60000)
-                # KESİN NİŞANCI: Fiyatların ekrana düşmesini zorla bekle!
                 try: page.wait_for_selector('[data-test-id="price-current-price"]', timeout=8000)
                 except: pass
                 scroll_page(page)
@@ -161,19 +178,30 @@ def hepsiburada_tara(max_sayfa=1):
                 eklenen = 0
                 for card in cards:
                     link_el = card.find('a', href=True)
-                    # Sadece net satış fiyatını barındıran CSS etiketini çek (Kargo etiketleri elenir)
-                    price_el = card.find(attrs={"data-test-id": "price-current-price"}) 
-                    if not link_el or not price_el: continue
+                    if not link_el: continue
+                    
+                    # KESİN NİŞANCI: Sadece net fiyat div'ini bulur
+                    price_el = card.find(attrs={"data-test-id": "price-current-price"})
+                    if not price_el:
+                        price_el = card.find(attrs={"data-test-id": "product-price"})
+                    if not price_el:
+                        price_el = card.find("div", class_=re.compile("price", re.I))
+                        
+                    if not price_el: continue
                     
                     title_el = card.find(attrs={"data-test-id": re.compile(r'title', re.IGNORECASE)}) or card.find('h3')
                     if not title_el: continue
                     
-                    all_products.append({
-                        "Platform": "Hepsiburada", "Kategori": "Bebek Bezi", 
-                        "Ürün Adı": title_el.text.strip(), "Fiyat": fiyati_temizle(price_el.text), 
-                        "Ürün Linki": "https://www.hepsiburada.com" + link_el['href'], "Resim": ""
-                    })
-                    eklenen += 1
+                    # Lazerli temizleyici sahte Hepsipara puanlarını eler
+                    temiz_fiyat = fiyati_temizle(price_el.text)
+                    
+                    if len(title_el.text) > 5 and temiz_fiyat:
+                        all_products.append({
+                            "Platform": "Hepsiburada", "Kategori": "Bebek Bezi", 
+                            "Ürün Adı": title_el.text.strip(), "Fiyat": temiz_fiyat, 
+                            "Ürün Linki": "https://www.hepsiburada.com" + link_el['href'], "Resim": ""
+                        })
+                        eklenen += 1
                 print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except: pass
         browser.close()
@@ -205,7 +233,7 @@ def save_to_db(all_products):
     except Exception as e: print(f"❌ Veritabanı bağlantı hatası: {e}")
 
 if __name__ == "__main__":
-    print("🚀 Bebiio Zırhlı Fiyat Motoru V2 Başlatıldı!\n")
+    print("🚀 Bebiio Lazerli Fiyat Motoru Başlatıldı!\n")
     try:
         toplam_urunler = []
         toplam_urunler.extend(trendyol_tara(1))
