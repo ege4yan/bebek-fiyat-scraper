@@ -9,25 +9,14 @@ from bs4 import BeautifulSoup
 SUPABASE_DB_URL = "postgresql://postgres.bbemkqegyvbktqjbjqrr:EgeKuzen2026@aws-1-eu-west-1.pooler.supabase.com:6543/postgres"
 
 def fiyati_temizle(fiyat_metni):
-    """
-    LAZERLİ KESİCİ: Metnin içindeki harfleri silerken rakamları birbirine katmaz.
-    Sadece İLK mantıklı fiyat rakamını (örn: 367,00 veya 1.250,99) cımbızla çeker.
-    """
     if not fiyat_metni: return ""
-    
-    # Rakam, nokta ve virgül içeren ilk standart fiyat şablonunu bul
     match = re.search(r'(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?)', fiyat_metni.replace(' ', ''))
-    
     if match:
-        bulunan_fiyat = match.group(1)
-        # Sadece virgül veya sadece nokta kalmışsa temizle
-        bulunan_fiyat = bulunan_fiyat.strip('.,')
+        bulunan_fiyat = match.group(1).strip('.,')
         return bulunan_fiyat + " TL"
-    
     return ""
 
 def scroll_page(page):
-    """Sayfayı kaydırarak hayalet resimlerin (Lazy Load) yüklenmesini zorlar."""
     for _ in range(6):
         page.evaluate("window.scrollBy(0, 1000)")
         time.sleep(1)
@@ -173,37 +162,46 @@ def hepsiburada_tara(max_sayfa=1):
                 except: pass
                 scroll_page(page)
                 
-                soup = BeautifulSoup(page.content(), 'html.parser')
-                cards = soup.find_all("li", attrs={"data-index": True})
-                eklenen = 0
-                for card in cards:
-                    link_el = card.find('a', href=True)
-                    if not link_el: continue
-                    
-                    # KESİN NİŞANCI: Sadece net fiyat div'ini bulur
-                    price_el = card.find(attrs={"data-test-id": "price-current-price"})
-                    if not price_el:
-                        price_el = card.find(attrs={"data-test-id": "product-price"})
-                    if not price_el:
-                        price_el = card.find("div", class_=re.compile("price", re.I))
+                # BÜYÜK DEĞİŞİM: HTML'i dışarıdan okumayı bıraktık. 
+                # Doğrudan tarayıcının JavaScript motoruyla içeriden nokta atışı veri çekiyoruz.
+                extracted_data = page.evaluate('''() => {
+                    let items = [];
+                    let cards = document.querySelectorAll("li[data-index]");
+                    cards.forEach(card => {
+                        let a_tag = card.querySelector("a");
+                        let title_tag = card.querySelector("[data-test-id*='title']") || card.querySelector("h3");
+                        let price_tag = card.querySelector("[data-test-id='price-current-price']");
                         
-                    if not price_el: continue
+                        if (a_tag && title_tag && price_tag) {
+                            items.push({
+                                title: title_tag.innerText.trim(),
+                                price: price_tag.innerText.trim(),
+                                link: a_tag.getAttribute("href")
+                            });
+                        }
+                    });
+                    return items;
+                }''')
+                
+                eklenen = 0
+                for data in extracted_data:
+                    title = data.get("title", "")
+                    raw_price = data.get("price", "")
+                    href = data.get("link", "")
                     
-                    title_el = card.find(attrs={"data-test-id": re.compile(r'title', re.IGNORECASE)}) or card.find('h3')
-                    if not title_el: continue
+                    if not href.startswith('http'):
+                        href = "https://www.hepsiburada.com" + href
+                        
+                    temiz_fiyat = fiyati_temizle(raw_price)
                     
-                    # Lazerli temizleyici sahte Hepsipara puanlarını eler
-                    temiz_fiyat = fiyati_temizle(price_el.text)
-                    
-                    if len(title_el.text) > 5 and temiz_fiyat:
+                    if len(title) > 5 and temiz_fiyat:
                         all_products.append({
                             "Platform": "Hepsiburada", "Kategori": "Bebek Bezi", 
-                            "Ürün Adı": title_el.text.strip(), "Fiyat": temiz_fiyat, 
-                            "Ürün Linki": "https://www.hepsiburada.com" + link_el['href'], "Resim": ""
+                            "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": href, "Resim": ""
                         })
                         eklenen += 1
                 print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
-            except: pass
+            except Exception as e: print(f"Hepsiburada Hata: {e}")
         browser.close()
     return all_products
 
@@ -233,7 +231,7 @@ def save_to_db(all_products):
     except Exception as e: print(f"❌ Veritabanı bağlantı hatası: {e}")
 
 if __name__ == "__main__":
-    print("🚀 Bebiio Lazerli Fiyat Motoru Başlatıldı!\n")
+    print("🚀 Bebiio JS Enjeksiyonlu Motor Başlatıldı!\n")
     try:
         toplam_urunler = []
         toplam_urunler.extend(trendyol_tara(1))
