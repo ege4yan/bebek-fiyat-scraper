@@ -12,20 +12,26 @@ def fiyati_temizle(fiyat_metni):
     fiyat_metni = re.sub(r'[^\d,.]', '', fiyat_metni)
     return fiyat_metni + " TL"
 
+def resim_bul(img_el):
+    """Farklı sitelerin gizli resim ceplerini (Lazy Load) tarar ve gerçek resmi bulur."""
+    if not img_el:
+        return ""
+    olasi_cepler = ['data-original', 'data-imagesrc', 'data-src', 'src']
+    for cep in olasi_cepler:
+        url = img_el.get(cep)
+        # Eğer url varsa ve 1x1 boş bir piksel (base64) veya svg değilse bunu kullan
+        if url and url.startswith('http') and "data:image" not in url:
+            return url
+    return ""
+
 def amazon_tara(max_sayfa=1):
     all_products = []
     base_url = "https://www.amazon.com.tr/s?k=bebek+bezi&i=baby&__mk_tr_TR=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=29LRHE03W0Z1I&sprefix=bebek+bezi%2Cbaby%2C141&ref=nb_sb_noss_2"
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, slow_mo=50, args=['--disable-blink-features=AutomationControlled', '--start-maximized']) 
-        context = browser.new_context(
-            viewport={'width': 1920, 'height': 1080},
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-            locale="tr-TR", timezone_id="Europe/Istanbul",
-            accept_downloads=True 
-        )
+        browser = p.chromium.launch(headless=True, slow_mo=50, args=['--disable-blink-features=AutomationControlled']) 
+        context = browser.new_context(viewport={'width': 1920, 'height': 1080}, user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
         page = context.new_page()
-        page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         
         for sayfa_no in range(1, max_sayfa + 1):
             url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
@@ -34,16 +40,8 @@ def amazon_tara(max_sayfa=1):
                 page.goto("https://www.amazon.com.tr", timeout=45000)
                 time.sleep(2)
                 page.goto(url, timeout=60000)
-                
-                try:
-                    page.wait_for_selector("div[data-asin]", timeout=6000)
-                except:
-                    print("🚨 AMAZON KORUMASI TESPİT EDİLDİ (Geçilmeye çalışılıyor...)")
-                    time.sleep(5)
-            except: pass
-            
-            try:
-                for _ in range(5):
+                time.sleep(3)
+                for _ in range(4):
                     page.mouse.wheel(0, 1000)
                     time.sleep(1.5)
             except: pass
@@ -57,37 +55,27 @@ def amazon_tara(max_sayfa=1):
                     asin = card.get("data-asin")
                     if not asin: continue 
                     
-                    title_el = card.select_one("h2") or card.select_one("span.a-text-normal")
-                    img_el = card.select_one("img.s-image")
-                    
-                    if title_el:
-                        title = title_el.text.strip()
-                    else:
-                        title = img_el.get("alt", "").strip() if img_el else ""
-                        
+                    title_el = card.select_one("h2 span") or card.select_one("span.a-text-normal")
+                    title = title_el.text.strip() if title_el else ""
                     if len(title) < 5: continue
                     
-                    # YENİ: Resim URL'sini çek
+                    img_el = card.select_one("img.s-image")
                     resim_url = img_el.get("src", "") if img_el else ""
                     
-                    link_el = card.select_one(f"a[href*='/{asin}/']") or card.select_one("h2 a") or card.select_one("a.a-link-normal")
+                    link_el = card.select_one(f"a[href*='/{asin}/']") or card.select_one("h2 a")
                     if not link_el: continue
                     href = link_el.get('href', '')
                     if not href.startswith('http'):
                         href = "https://www.amazon.com.tr" + href
                         
-                    fiyat_metni = ""
                     whole = card.select_one(".a-price-whole")
                     fraction = card.select_one(".a-price-fraction")
                     
+                    fiyat_metni = ""
                     if whole:
                         w_text = whole.text.strip().replace(",", "").replace(".", "")
                         f_text = fraction.text.strip() if fraction else "00"
                         fiyat_metni = f"{w_text},{f_text}"
-                    else:
-                        offscreen = card.select_one(".a-price .a-offscreen")
-                        if offscreen:
-                            fiyat_metni = offscreen.text.strip()
                             
                     temiz_fiyat = fiyati_temizle(fiyat_metni)
                     if temiz_fiyat == " TL" or temiz_fiyat == "": continue
@@ -117,39 +105,47 @@ def trendyol_tara(max_sayfa=1):
             try:
                 page.goto(url, timeout=60000, wait_until="domcontentloaded")
                 time.sleep(3)
-                for _ in range(3):
+                for _ in range(4):
                     page.mouse.wheel(0, 1500)
                     time.sleep(2)
+                    
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                links = soup.find_all('a', href=True)
+                cards = soup.find_all('div', class_='p-card-wrppr')
+                
                 eklenen = 0
-                for link in links:
-                    href = link['href']
-                    if '-p-' in href and '/yorumlar' not in href:
-                        text_blocks = list(link.stripped_strings)
-                        fiyatlar = [t for t in text_blocks if 'TL' in t]
-                        if fiyatlar:
-                            full_link = "https://www.trendyol.com" + href if href.startswith('/') else href
-                            guncel_fiyat = fiyatlar[-1]
-                            stop_words = ['TL', 'Sepete Ekle', 'Kargo Bedava', 'Hızlı Teslimat', 'Sponsorlu', 'Peşin Fiyatına', 'Son 30 Günün En Düşük Fiyatı', 'Avantajlı Ürün', 'Kuponlu Ürün', "Trendyol Plus'a Özel", "Plus'a Özel"]
-                            name_parts = [t for t in text_blocks if not any(sw.lower() in t.lower() for sw in stop_words)]
-                            title = " ".join(name_parts[:4]) if name_parts else "İsim Bulunamadı"
-                            title = re.sub(r'\s+', ' ', title).strip()
-                            
-                            # YENİ: Resim URL'sini çek
-                            img_el = link.find('img')
-                            resim_url = ""
-                            if img_el:
-                                resim_url = img_el.get('src') or img_el.get('data-src') or ""
-
-                            all_products.append({
-                                "Platform": "Trendyol", "Kategori": "Bebek Bezi", 
-                                "Ürün Adı": title, "Fiyat": guncel_fiyat, "Ürün Linki": full_link,
-                                "Resim": resim_url
-                            })
-                            eklenen += 1
+                for card in cards:
+                    link_el = card.find('a', href=True)
+                    if not link_el: continue
+                    
+                    href = link_el['href']
+                    full_link = "https://www.trendyol.com" + href if href.startswith('/') else href
+                    
+                    # BAŞLIK
+                    brand_el = card.find('span', class_='prdct-desc-brnd')
+                    name_el = card.find('span', class_='prdct-desc-cntnr-name')
+                    if not name_el: continue
+                    brand = brand_el.text.strip() + " " if brand_el else ""
+                    title = (brand + name_el.text.strip()).strip()
+                    
+                    # RESİM (Nokta atışı Lazy Load korumalı)
+                    img_el = card.find('img', class_='p-card-img')
+                    resim_url = resim_bul(img_el)
+                    
+                    # FİYAT (Sadece asıl indirimli/geçerli fiyatı al)
+                    price_el = card.find('div', class_='prc-box-dscntd') or card.find('div', class_='prc-box-sllng')
+                    if not price_el: continue
+                    fiyat_metni = price_el.text.strip()
+                    temiz_fiyat = fiyati_temizle(fiyat_metni)
+                    
+                    if len(title) > 5 and temiz_fiyat != " TL":
+                        all_products.append({
+                            "Platform": "Trendyol", "Kategori": "Bebek Bezi", 
+                            "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": full_link,
+                            "Resim": resim_url
+                        })
+                        eklenen += 1
                 print(f"[Trendyol] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
-            except: pass
+            except Exception as e: print(f"Hata: {e}")
         browser.close()
     return all_products
 
@@ -166,42 +162,37 @@ def n11_tara(max_sayfa=1):
             try:
                 page.goto(url, timeout=60000, wait_until="domcontentloaded")
                 time.sleep(3)
-                for _ in range(4):
+                for _ in range(5):
                     page.mouse.wheel(0, 1500)
                     time.sleep(2)
+                    
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                links = soup.find_all('a', href=True)
+                cards = soup.find_all('li', class_='column')
+                
                 eklenen = 0
-                for link in links:
-                    href = link['href']
-                    if '/urun/' in href or ('bebek' in href and '-' in href and not 'arama' in href and not 'kategori' in href):
-                        text_blocks = list(link.stripped_strings)
-                        if any('TL' in t for t in text_blocks):
-                            full_link = href if href.startswith('http') else "https://www.n11.com" + href
-                            fiyatlar = [t for t in text_blocks if 'TL' in t]
-                            toplam_fiyat = "Fiyat Bulunamadı"
-                            for f in fiyatlar:
-                                if '/' not in f and 'Adet' not in f and 'adet' not in f:
-                                    toplam_fiyat = re.sub(r'\s+', ' ', f).strip()
-                            raw_title_blocks = [t for t in text_blocks if 'TL' not in t and '/' not in t]
-                            title = " ".join(raw_title_blocks)
-                            for kelime in ['ÜCRETSİZ KARGO', 'SÜPER', 'SEPETTE', 'günün en düşük fiyatı!', 'Hızlı Teslimat', 'Sponsorlu', 'Yeni', 'Tükendi', 'Sepete Ekle']:
-                                title = re.sub(rf'(?i){re.escape(kelime)}', '', title)
-                            title = re.sub(r'\s+', ' ', title).strip()
-                            
-                            # YENİ: Resim URL'sini çek
-                            img_el = link.find('img')
-                            resim_url = ""
-                            if img_el:
-                                resim_url = img_el.get('data-original') or img_el.get('src') or ""
-
-                            if len(title) > 10:
-                                all_products.append({
-                                    "Platform": "N11", "Kategori": "Bebek Bezi", 
-                                    "Ürün Adı": title, "Fiyat": toplam_fiyat, "Ürün Linki": full_link,
-                                    "Resim": resim_url
-                                })
-                                eklenen += 1
+                for card in cards:
+                    link_el = card.find('a', class_='plink')
+                    if not link_el: continue
+                    
+                    full_link = link_el.get('href', '')
+                    title = link_el.get('title', '').strip()
+                    
+                    # RESİM
+                    img_el = card.find('img', class_='cardImage')
+                    resim_url = resim_bul(img_el)
+                    
+                    # FİYAT (Sadece geçerli, altını çizip sildikleri değil)
+                    price_el = card.find('ins') or card.find('span', class_='newPrice')
+                    if not price_el: continue
+                    temiz_fiyat = fiyati_temizle(price_el.text.strip())
+                    
+                    if len(title) > 10 and temiz_fiyat != " TL":
+                        all_products.append({
+                            "Platform": "N11", "Kategori": "Bebek Bezi", 
+                            "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": full_link,
+                            "Resim": resim_url
+                        })
+                        eklenen += 1
                 print(f"[N11] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except: pass
         browser.close()
@@ -220,48 +211,40 @@ def hepsiburada_tara(max_sayfa=1):
             try:
                 page.goto(url, timeout=60000, wait_until="domcontentloaded")
                 time.sleep(5)
-                for _ in range(5):
+                for _ in range(6):
                     page.mouse.wheel(0, 1500)
                     time.sleep(2)
+                    
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                cards = soup.select("li[class*='productListContent']") or soup.find_all("li", attrs={"data-index": True})
-                eklenen_urun = 0
+                cards = soup.find_all("li", attrs={"data-index": True})
+                
+                eklenen = 0
                 for card in cards:
                     link_el = card.find('a', href=True)
                     if not link_el: continue
                     full_link = link_el['href'] if link_el['href'].startswith('http') else "https://www.hepsiburada.com" + link_el['href']
-                    title_el = card.find('h3') or card.find(attrs={"data-test-id": re.compile(r'title', re.IGNORECASE)})
-                    title = title_el.text.strip() if title_el else ""
-                    if not title: continue
                     
-                    # YENİ: Resim URL'sini çek
+                    # BAŞLIK
+                    title_el = card.find(attrs={"data-test-id": re.compile(r'title', re.IGNORECASE)}) or card.find('h3')
+                    title = title_el.text.strip() if title_el else ""
+                    
+                    # RESİM
                     img_el = card.find('img')
-                    resim_url = ""
-                    if img_el:
-                        resim_url = img_el.get('src') or img_el.get('data-src') or ""
+                    resim_url = resim_bul(img_el)
 
-                    joined_text = " ".join(card.stripped_strings)
-                    joined_text = re.sub(r'(?<=\d)\s*,\s*(?=\d)', ',', joined_text)
-                    joined_text = re.sub(r'(?<=\d)\s*\.\s*(?=\d)', '.', joined_text)
-                    matches = re.findall(r'((?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d+)?)\s*(?:TL|₺)', joined_text, re.IGNORECASE)
-                    fiyat = ""
-                    if matches:
-                        float_prices = []
-                        for m in matches:
-                            try: float_prices.append((float(m.replace('.', '').replace(',', '.')), m))
-                            except: pass
-                        if float_prices:
-                            max_val = max(float_prices, key=lambda x: x[0])[0]
-                            main_prices = [p for p in float_prices if p[0] > (max_val * 0.4)]
-                            if main_prices: fiyat = min(main_prices, key=lambda x: x[0])[1] + " TL"
-                    if fiyat:
+                    # FİYAT (Artık metin tahmini yapmıyoruz, direkt fiyat etiketine vuruyoruz)
+                    price_el = card.find(attrs={"data-test-id": "price-current-price"})
+                    if not price_el: continue
+                    temiz_fiyat = fiyati_temizle(price_el.text.strip())
+                    
+                    if len(title) > 5 and temiz_fiyat != " TL":
                         all_products.append({
                             "Platform": "Hepsiburada", "Kategori": "Bebek Bezi", 
-                            "Ürün Adı": title, "Fiyat": fiyat, "Ürün Linki": full_link,
+                            "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": full_link,
                             "Resim": resim_url
                         })
-                        eklenen_urun += 1
-                print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen_urun} ürün yakalandı.")
+                        eklenen += 1
+                print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except: pass
         browser.close()
     return all_products
@@ -276,7 +259,6 @@ def save_to_db(all_products):
         eklenen = 0
         for urun in all_products:
             try:
-                # YENİ: resim_url sütununa veriyi yolluyoruz
                 query = """
                     INSERT INTO urunler (platform, kategori, urun_adi, fiyat, urun_linki, resim_url)
                     VALUES (%s, %s, %s, %s, %s, %s)
@@ -294,10 +276,8 @@ def save_to_db(all_products):
 
 if __name__ == "__main__":
     print("🚀 Bebiio GitHub Actions Motoru Başlatıldı!\n")
-    
     try:
         toplam_urunler = []
-        
         print("Trendyol taranıyor...")
         toplam_urunler.extend(trendyol_tara(1))
         
@@ -314,8 +294,6 @@ if __name__ == "__main__":
         print("Veritabanına (Supabase) yazılıyor...")
         
         save_to_db(toplam_urunler)
-        
         print("✅ Görev başarıyla tamamlandı! Motor kapanıyor.")
-        
     except Exception as e:
         print(f"❌ Motor çalışırken hata oluştu: {e}")
