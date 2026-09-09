@@ -10,11 +10,11 @@ SUPABASE_DB_URL = "postgresql://postgres.bbemkqegyvbktqjbjqrr:EgeKuzen2026@aws-1
 
 def fiyati_temizle(fiyat_metni):
     if not fiyat_metni: return ""
-    match = re.search(r'(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?)', fiyat_metni.replace(' ', ''))
-    if match:
-        bulunan_fiyat = match.group(1).strip('.,')
-        return bulunan_fiyat + " TL"
-    return ""
+    # Sadece rakam, virgül ve noktayı bırakır, Amazon fiyatlarını (1349,00) bozmaz
+    temiz = re.sub(r'[^\d,.]', '', fiyat_metni)
+    temiz = temiz.strip('.,')
+    if not temiz: return ""
+    return temiz + " TL"
 
 def scroll_page(page):
     for _ in range(6):
@@ -92,9 +92,14 @@ def trendyol_tara(max_sayfa=1):
                     price_el = card.find('div', class_='prc-box-dscntd') or card.find('div', class_='prc-box-sllng')
                     if not link_el or not price_el: continue
                     
-                    brand_el = card.find('span', class_='prdct-desc-brnd')
-                    name_el = card.find('span', class_='prdct-desc-cntnr-name')
-                    title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
+                    # TERTEMİZ İSİM ÇEKME: Araya sızan kargo yazılarını reddeder, gizli title'ı alır
+                    title_div = card.find('div', class_='prdct-desc-cntnr-ttl')
+                    if title_div and title_div.get('title'):
+                        title = title_div.get('title').strip()
+                    else:
+                        brand_el = card.find('span', class_='prdct-desc-brnd')
+                        name_el = card.find('span', class_='prdct-desc-cntnr-name')
+                        title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
                     
                     temiz_fiyat = fiyati_temizle(price_el.text)
                     if len(title) > 5 and temiz_fiyat:
@@ -162,8 +167,6 @@ def hepsiburada_tara(max_sayfa=1):
                 except: pass
                 scroll_page(page)
                 
-                # BÜYÜK DEĞİŞİM: HTML'i dışarıdan okumayı bıraktık. 
-                # Doğrudan tarayıcının JavaScript motoruyla içeriden nokta atışı veri çekiyoruz.
                 extracted_data = page.evaluate('''() => {
                     let items = [];
                     let cards = document.querySelectorAll("li[data-index]");
@@ -231,7 +234,7 @@ def save_to_db(all_products):
     except Exception as e: print(f"❌ Veritabanı bağlantı hatası: {e}")
 
 if __name__ == "__main__":
-    print("🚀 Bebiio JS Enjeksiyonlu Motor Başlatıldı!\n")
+    print("🚀 Bebiio Kusursuz Fiyat Motoru Başlatıldı!\n")
     try:
         toplam_urunler = []
         toplam_urunler.extend(trendyol_tara(1))
