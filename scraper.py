@@ -5,6 +5,7 @@ import psycopg2
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
+# SUPABASE BAĞLANTISI
 SUPABASE_DB_URL = "postgresql://postgres.bbemkqegyvbktqjbjqrr:EgeKuzen2026@aws-1-eu-west-1.pooler.supabase.com:6543/postgres"
 
 def fiyati_temizle(fiyat_metni):
@@ -37,12 +38,8 @@ def amazon_tara(max_sayfa=1):
                 try:
                     page.wait_for_selector("div[data-asin]", timeout=6000)
                 except:
-                    print("🚨 AMAZON KORUMASI: Lütfen açılan Chrome penceresinde test çıkarsa çözün! (45 Saniye bekleniyor...)")
-                    try:
-                        page.wait_for_selector("div[data-asin]", timeout=45000)
-                    except: pass
-                    
-                time.sleep(4)
+                    print("🚨 AMAZON KORUMASI TESPİT EDİLDİ (Geçilmeye çalışılıyor...)")
+                    time.sleep(5)
             except: pass
             
             try:
@@ -52,8 +49,6 @@ def amazon_tara(max_sayfa=1):
             except: pass
 
             soup = BeautifulSoup(page.content(), 'html.parser')
-            
-            # AMAZON İÇİN ACIKMAZ SÜZGEÇ: Sadece "ASIN" (Ürün Kodu) olan gerçek kartları bul
             cards = soup.find_all("div", attrs={"data-asin": True})
             
             eklenen = 0
@@ -62,24 +57,25 @@ def amazon_tara(max_sayfa=1):
                     asin = card.get("data-asin")
                     if not asin: continue 
                     
-                    # 1. Başlığı en geniş ihtimallerle ara
                     title_el = card.select_one("h2") or card.select_one("span.a-text-normal")
+                    img_el = card.select_one("img.s-image")
+                    
                     if title_el:
                         title = title_el.text.strip()
                     else:
-                        img_el = card.select_one("img.s-image")
                         title = img_el.get("alt", "").strip() if img_el else ""
                         
                     if len(title) < 5: continue
                     
-                    # 2. Linki garantiye al
+                    # YENİ: Resim URL'sini çek
+                    resim_url = img_el.get("src", "") if img_el else ""
+                    
                     link_el = card.select_one(f"a[href*='/{asin}/']") or card.select_one("h2 a") or card.select_one("a.a-link-normal")
                     if not link_el: continue
                     href = link_el.get('href', '')
                     if not href.startswith('http'):
                         href = "https://www.amazon.com.tr" + href
                         
-                    # 3. Fiyatı parçalı veya bütün olarak kopar
                     fiyat_metni = ""
                     whole = card.select_one(".a-price-whole")
                     fraction = card.select_one(".a-price-fraction")
@@ -98,7 +94,8 @@ def amazon_tara(max_sayfa=1):
 
                     all_products.append({
                         "Platform": "Amazon TR", "Kategori": "Bebek Bezi",
-                        "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": href
+                        "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": href,
+                        "Resim": resim_url
                     })
                     eklenen += 1
                 except: continue
@@ -138,7 +135,18 @@ def trendyol_tara(max_sayfa=1):
                             name_parts = [t for t in text_blocks if not any(sw.lower() in t.lower() for sw in stop_words)]
                             title = " ".join(name_parts[:4]) if name_parts else "İsim Bulunamadı"
                             title = re.sub(r'\s+', ' ', title).strip()
-                            all_products.append({"Platform": "Trendyol", "Kategori": "Bebek Bezi", "Ürün Adı": title, "Fiyat": guncel_fiyat, "Ürün Linki": full_link})
+                            
+                            # YENİ: Resim URL'sini çek
+                            img_el = link.find('img')
+                            resim_url = ""
+                            if img_el:
+                                resim_url = img_el.get('src') or img_el.get('data-src') or ""
+
+                            all_products.append({
+                                "Platform": "Trendyol", "Kategori": "Bebek Bezi", 
+                                "Ürün Adı": title, "Fiyat": guncel_fiyat, "Ürün Linki": full_link,
+                                "Resim": resim_url
+                            })
                             eklenen += 1
                 print(f"[Trendyol] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except: pass
@@ -180,8 +188,19 @@ def n11_tara(max_sayfa=1):
                             for kelime in ['ÜCRETSİZ KARGO', 'SÜPER', 'SEPETTE', 'günün en düşük fiyatı!', 'Hızlı Teslimat', 'Sponsorlu', 'Yeni', 'Tükendi', 'Sepete Ekle']:
                                 title = re.sub(rf'(?i){re.escape(kelime)}', '', title)
                             title = re.sub(r'\s+', ' ', title).strip()
+                            
+                            # YENİ: Resim URL'sini çek
+                            img_el = link.find('img')
+                            resim_url = ""
+                            if img_el:
+                                resim_url = img_el.get('data-original') or img_el.get('src') or ""
+
                             if len(title) > 10:
-                                all_products.append({"Platform": "N11", "Kategori": "Bebek Bezi", "Ürün Adı": title, "Fiyat": toplam_fiyat, "Ürün Linki": full_link})
+                                all_products.append({
+                                    "Platform": "N11", "Kategori": "Bebek Bezi", 
+                                    "Ürün Adı": title, "Fiyat": toplam_fiyat, "Ürün Linki": full_link,
+                                    "Resim": resim_url
+                                })
                                 eklenen += 1
                 print(f"[N11] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except: pass
@@ -214,6 +233,13 @@ def hepsiburada_tara(max_sayfa=1):
                     title_el = card.find('h3') or card.find(attrs={"data-test-id": re.compile(r'title', re.IGNORECASE)})
                     title = title_el.text.strip() if title_el else ""
                     if not title: continue
+                    
+                    # YENİ: Resim URL'sini çek
+                    img_el = card.find('img')
+                    resim_url = ""
+                    if img_el:
+                        resim_url = img_el.get('src') or img_el.get('data-src') or ""
+
                     joined_text = " ".join(card.stripped_strings)
                     joined_text = re.sub(r'(?<=\d)\s*,\s*(?=\d)', ',', joined_text)
                     joined_text = re.sub(r'(?<=\d)\s*\.\s*(?=\d)', '.', joined_text)
@@ -229,7 +255,11 @@ def hepsiburada_tara(max_sayfa=1):
                             main_prices = [p for p in float_prices if p[0] > (max_val * 0.4)]
                             if main_prices: fiyat = min(main_prices, key=lambda x: x[0])[1] + " TL"
                     if fiyat:
-                        all_products.append({"Platform": "Hepsiburada", "Kategori": "Bebek Bezi", "Ürün Adı": title, "Fiyat": fiyat, "Ürün Linki": full_link})
+                        all_products.append({
+                            "Platform": "Hepsiburada", "Kategori": "Bebek Bezi", 
+                            "Ürün Adı": title, "Fiyat": fiyat, "Ürün Linki": full_link,
+                            "Resim": resim_url
+                        })
                         eklenen_urun += 1
                 print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen_urun} ürün yakalandı.")
             except: pass
@@ -246,13 +276,14 @@ def save_to_db(all_products):
         eklenen = 0
         for urun in all_products:
             try:
+                # YENİ: resim_url sütununa veriyi yolluyoruz
                 query = """
-                    INSERT INTO urunler (platform, kategori, urun_adi, fiyat, urun_linki)
-                    VALUES (%s, %s, %s, %s, %s)
+                    INSERT INTO urunler (platform, kategori, urun_adi, fiyat, urun_linki, resim_url)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     ON CONFLICT (urun_linki) 
-                    DO UPDATE SET fiyat = EXCLUDED.fiyat, urun_adi = EXCLUDED.urun_adi;
+                    DO UPDATE SET fiyat = EXCLUDED.fiyat, urun_adi = EXCLUDED.urun_adi, resim_url = EXCLUDED.resim_url;
                 """
-                cur.execute(query, (urun["Platform"], urun["Kategori"], urun["Ürün Adı"], urun["Fiyat"], urun["Ürün Linki"]))
+                cur.execute(query, (urun["Platform"], urun["Kategori"], urun["Ürün Adı"], urun["Fiyat"], urun["Ürün Linki"], urun.get("Resim", "")))
                 eklenen += 1
             except: conn.rollback()
         conn.commit()
@@ -260,7 +291,31 @@ def save_to_db(all_products):
         conn.close()
         print(f"\n✅ ZAFER! Toplam {eklenen} ürün başarıyla Supabase'e kaydedildi!")
     except Exception as e: print(f"❌ Veritabanı bağlantı hatası: {e}")
+
 if __name__ == "__main__":
-    print("🚀 Bebiio Otomatik Tarama Tankı Başlatıldı! (30 Dakikada Bir Ateşlenecek)\n")
+    print("🚀 Bebiio GitHub Actions Motoru Başlatıldı!\n")
     
-    
+    try:
+        toplam_urunler = []
+        
+        print("Trendyol taranıyor...")
+        toplam_urunler.extend(trendyol_tara(1))
+        
+        print("Amazon taranıyor...")
+        toplam_urunler.extend(amazon_tara(1))
+        
+        print("N11 taranıyor...")
+        toplam_urunler.extend(n11_tara(1))
+        
+        print("Hepsiburada taranıyor...")
+        toplam_urunler.extend(hepsiburada_tara(1))
+        
+        print(f"\n🎉 Tarama tamamlandı! Toplam {len(toplam_urunler)} ürün yakalandı.")
+        print("Veritabanına (Supabase) yazılıyor...")
+        
+        save_to_db(toplam_urunler)
+        
+        print("✅ Görev başarıyla tamamlandı! Motor kapanıyor.")
+        
+    except Exception as e:
+        print(f"❌ Motor çalışırken hata oluştu: {e}")

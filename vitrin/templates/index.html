@@ -2,9 +2,9 @@
 <html lang="tr" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bebiio | En Uygun Fiyatı Bulan O</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -13,21 +13,31 @@
                     fontFamily: { sans: ['Nunito', 'sans-serif'] },
                     colors: {
                         brand: {
-                            purple: '#8B75E6',
-                            purpleHover: '#7661C7',
-                            light: '#F8F6FF',
-                            text: '#2D3748',
-                            green: '#38A169',
-                            greenLight: '#E6FFFA'
+                            purple: '#7950F2',
+                            purpleHover: '#6741D9',
+                            light: '#F3F0FF',
+                            text: '#343A40',
+                            green: '#2B8A3E',
+                            greenLight: '#EBFBEE',
+                            surface: '#F8F9FA'
                         }
                     },
+                    boxShadow: {
+                        'soft': '0 20px 40px -15px rgba(0,0,0,0.05)',
+                        'float': '0 30px 60px -20px rgba(121, 80, 242, 0.15)'
+                    },
                     animation: {
-                        'fade-in-up': 'fadeInUp 0.3s ease-out forwards',
+                        'fade-in-up': 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'modal-in': 'modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
                         fadeInUp: {
                             '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(100%)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
                         },
                         modalIn: {
@@ -40,127 +50,159 @@
         }
     </script>
     <style>
-        body { background-color: #FAFAFC; color: #2D3748; }
-        .hero-gradient { background: linear-gradient(135deg, #FFF5F5 0%, #F4F0FF 100%); }
-        .hover-lift { transition: all 0.3s ease; }
-        .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-        ::-webkit-scrollbar { width: 6px; }
+        body { background-color: #F8F9FA; color: #343A40; -webkit-tap-highlight-color: transparent; }
+        .bg-pattern { background-image: radial-gradient(#7950F2 0.5px, transparent 0.5px), radial-gradient(#7950F2 0.5px, #F8F9FA 0.5px); background-size: 20px 20px; background-position: 0 0, 10px 10px; background-attachment: fixed; opacity: 0.03; }
+        .hero-gradient { background: linear-gradient(135deg, #FDFBFF 0%, #F3F0FF 100%); }
+        .hover-lift { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .hover-lift:hover { transform: translateY(-8px); box-shadow: 0 30px 60px -20px rgba(121, 80, 242, 0.15); }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
+        ::-webkit-scrollbar-thumb { background: #DEE2E6; border-radius: 10px; }
     </style>
 </head>
-<body class="antialiased relative" id="ana-sayfa">
+<body class="antialiased relative pb-20 md:pb-0" id="ana-sayfa">
+    
+    <div class="fixed inset-0 bg-pattern z-[-1]"></div>
+    <div id="toastContainer" class="fixed top-5 md:top-auto md:bottom-5 right-1/2 translate-x-1/2 md:translate-x-0 md:right-5 z-[60] flex flex-col gap-2 w-[90%] md:w-auto text-center"></div>
 
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
-
-    <nav class="bg-white py-4 px-6 shadow-sm sticky top-0 z-40">
+    <nav class="hidden md:block bg-white/80 backdrop-blur-md py-4 px-6 shadow-sm sticky top-0 z-40 border-b border-gray-100">
         <div class="container mx-auto flex justify-between items-center">
             <a href="#ana-sayfa" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                <div class="w-10 h-10 bg-brand-light rounded-full flex items-center justify-center text-brand-purple">
+                <div class="w-10 h-10 bg-brand-purple rounded-xl flex items-center justify-center text-white shadow-md shadow-brand-purple/30">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
                 </div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-gray-800">Bebiio</h1>
+                <h1 class="text-2xl font-black tracking-tight text-gray-900">Bebiio</h1>
             </a>
             
-            <div class="hidden md:flex gap-8 text-gray-600 font-semibold">
-                <a href="#ana-sayfa" class="text-brand-purple border-b-2 border-brand-purple pb-1">Ana Sayfa</a>
+            <div class="flex gap-8 text-gray-500 font-bold text-sm">
+                <a href="#ana-sayfa" class="text-brand-purple">Ana Sayfa</a>
                 <button onclick="document.getElementById('karsilastirma-alani').scrollIntoView({ behavior: 'smooth' })" class="hover:text-brand-purple transition-colors">Ürün Karşılaştır</button>
-                <button onclick="bildirimGoster('Kategoriler sayfası çok yakında aktif olacak! 🚀')" class="hover:text-brand-purple transition-colors">Kategoriler</button>
-                <button onclick="bildirimGoster('Markalar sayfası çok yakında aktif olacak! 🚀')" class="hover:text-brand-purple transition-colors">Markalar</button>
+                <button onclick="bildirimGoster('Kategoriler yakında! 🚀')" class="hover:text-brand-purple transition-colors">Kategoriler</button>
+                <button onclick="bildirimGoster('Markalar yakında! 🚀')" class="hover:text-brand-purple transition-colors">Markalar</button>
             </div>
             
-            <div class="flex gap-4 text-gray-500">
-                <button onclick="document.getElementById('aramaInput').focus()" class="w-6 h-6 hover:text-brand-purple transition cursor-pointer">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div class="flex gap-4 text-gray-400">
+                <button onclick="document.getElementById('aramaInput').focus()" class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-brand-light hover:text-brand-purple rounded-full transition-colors cursor-pointer">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </button>
-                <button onclick="bildirimGoster('Kullanıcı girişi yakında açılacak! 👤')" class="w-6 h-6 hover:text-brand-purple transition cursor-pointer">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <button onclick="bildirimGoster('Profil yakında! 👤')" class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-brand-light hover:text-brand-purple rounded-full transition-colors cursor-pointer">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 </button>
             </div>
         </div>
     </nav>
 
-    <section class="hero-gradient py-16 px-6 rounded-b-[3rem] shadow-inner mb-12">
-        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between">
-            <div class="w-full md:w-1/2 mb-10 md:mb-0">
-                <p class="text-brand-purple font-bold tracking-widest text-sm mb-2 uppercase">Bebiio ile Tanışın</p>
-                <h2 class="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-4">En uygun fiyatı<br><span class="text-brand-purple">bulan o!</span></h2>
-                <p class="text-gray-600 text-lg mb-8">Bebek ürünlerini tek bir yerde karşılaştır, hem zamandan hem de bütçenden anında tasarruf et.</p>
-                
-                <div class="bg-white p-2 rounded-full shadow-lg flex items-center w-full max-w-lg border border-gray-100 focus-within:ring-2 focus-within:ring-brand-purple transition-all">
-                    <svg class="w-6 h-6 text-gray-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" id="aramaInput" placeholder="Ürün, marka veya beden ara..." class="w-full px-4 py-3 focus:outline-none text-gray-700 font-medium bg-transparent">
-                    <button id="karsilastirBtn" class="bg-brand-purple hover:bg-brand-purpleHover text-white font-bold py-3 px-8 rounded-full transition-colors shadow-md">Karşılaştır</button>
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-lg border-t border-gray-100 flex justify-around items-center py-3 z-40 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <a href="#ana-sayfa" class="flex flex-col items-center text-brand-purple gap-1">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 101.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+            <span class="text-[10px] font-bold">Keşfet</span>
+        </a>
+        <button onclick="document.getElementById('aramaInput').focus(); window.scrollTo({top:0, behavior:'smooth'});" class="flex flex-col items-center text-gray-400 hover:text-brand-purple transition gap-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <span class="text-[10px] font-bold">Ara</span>
+        </button>
+        <button onclick="document.getElementById('karsilastirma-alani').scrollIntoView({ behavior: 'smooth' })" class="relative -top-5 bg-brand-purple text-white w-14 h-14 rounded-full flex items-center justify-center shadow-float border-4 border-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        </button>
+        <button onclick="bildirimGoster('Favoriler yakında! 💖')" class="flex flex-col items-center text-gray-400 hover:text-brand-purple transition gap-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+            <span class="text-[10px] font-bold">Favoriler</span>
+        </button>
+        <button onclick="bildirimGoster('Profil yakında! 👤')" class="flex flex-col items-center text-gray-400 hover:text-brand-purple transition gap-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span class="text-[10px] font-bold">Profil</span>
+        </button>
+    </div>
+
+    <section class="hero-gradient md:py-20 py-12 px-6 md:px-12 md:rounded-b-[4rem] rounded-b-[2.5rem] shadow-sm mb-8 md:mb-16 relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 bg-brand-purple/5 rounded-full blur-3xl"></div>
+        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between relative z-10">
+            <div class="w-full md:w-[55%] text-center md:text-left mb-10 md:mb-0">
+                <div class="inline-block bg-white text-brand-purple font-bold tracking-widest text-[10px] md:text-xs mb-4 px-4 py-2 rounded-full uppercase shadow-sm border border-brand-light">Bebiio Akıllı Arama</div>
+                <h2 class="text-4xl md:text-6xl font-black text-gray-900 leading-[1.1] mb-5 tracking-tight">En uygun fiyatı <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-pink-500">Bebiio bulsun!</span></h2>
+                <p class="text-gray-500 text-base md:text-lg mb-8 font-medium max-w-lg mx-auto md:mx-0">Bebek ürünlerini tek bir ekranda karşılaştır. Bütçeni koru, zamanın sana ve bebeğine kalsın.</p>
+                <div class="bg-white p-2 rounded-2xl md:rounded-full shadow-lg flex flex-col md:flex-row items-center w-full max-w-xl border border-gray-100 focus-within:ring-4 focus-within:ring-brand-purple/20 transition-all gap-2 md:gap-0">
+                    <div class="flex items-center w-full px-2">
+                        <svg class="w-6 h-6 text-gray-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" id="aramaInput" placeholder="Marka veya beden ara..." class="w-full px-4 py-4 focus:outline-none text-gray-700 font-bold bg-transparent text-sm md:text-base placeholder-gray-400">
+                    </div>
+                    <button id="karsilastirBtn" class="w-full md:w-auto bg-brand-purple hover:bg-brand-purpleHover text-white font-black py-4 px-8 rounded-xl md:rounded-full transition-colors shadow-md text-sm uppercase tracking-wide">Fiyat Bul</button>
                 </div>
             </div>
-            
-            <div class="w-full md:w-1/2 flex justify-center">
-                <div class="relative w-72 h-72 bg-white rounded-full shadow-xl flex items-center justify-center p-8 border-4 border-brand-light hover-lift">
-                    <svg class="w-full h-full text-brand-purple opacity-20" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
-                    <div class="absolute -right-4 -top-4 bg-brand-light text-brand-purple px-4 py-2 rounded-2xl font-bold text-sm shadow-md rotate-12">Miniklerin mutluluğu için! 💖</div>
+            <div class="hidden md:flex w-[45%] justify-end">
+                <div class="relative w-80 h-80 bg-white rounded-full shadow-soft flex items-center justify-center p-8 border-8 border-brand-light hover-lift">
+                    <svg class="w-full h-full text-brand-purple opacity-10" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
+                    <div class="absolute -left-6 top-10 bg-white text-gray-800 px-5 py-3 rounded-2xl font-black text-sm shadow-xl flex items-center gap-2 border border-gray-50">
+                        <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span> Anlık Tarama
+                    </div>
+                    <div class="absolute -right-4 bottom-10 bg-gray-900 text-white px-5 py-3 rounded-2xl font-black text-sm shadow-xl rotate-6">
+                        Miniklerin favorisi! 💖
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <main id="karsilastirma-alani" class="container mx-auto px-6 pb-20 pt-8">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
-            <h3 class="text-2xl font-bold text-gray-800">Popüler Ürünlerde Fiyat Karşılaştırması</h3>
-            <span id="istatistikMetni" class="text-sm font-semibold text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
-                Bebiio ağı taranıyor...
+    <main id="karsilastirma-alani" class="container mx-auto px-4 md:px-6 pt-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 md:mb-8 gap-3">
+            <h3 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Akıllı Piyasa Radarı</h3>
+            <span id="istatistikMetni" class="text-xs md:text-sm font-bold text-gray-500 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 flex items-center gap-2 w-full sm:w-auto justify-center">
+                <svg class="w-4 h-4 animate-spin text-brand-purple" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Veriler işleniyor...
             </span>
         </div>
         
-        <div id="urunGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div id="urunGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             <!-- Dinamik Kartlar -->
         </div>
     </main>
 
-    <!-- AKAKÇE / CİMRİ TARZI ÜRÜN DETAY MODALI -->
-    <div id="urunDetayModal" class="hidden fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-sm items-center justify-center p-4">
+    <div id="urunDetayModal" class="hidden fixed inset-0 z-[100] bg-gray-900/40 backdrop-blur-sm items-end md:items-center justify-center md:p-4">
         <div class="absolute inset-0" onclick="modalKapat()"></div>
-        
-        <div class="bg-gray-50 rounded-[2rem] w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-modal-in relative z-10">
-            <div class="bg-white p-6 md:p-8 border-b border-gray-100 flex justify-between items-start">
-                <div class="flex gap-6 items-center">
-                    <div class="w-20 h-20 md:w-24 md:h-24 bg-brand-light rounded-2xl flex items-center justify-center text-brand-purple shrink-0">
-                        <svg class="w-10 h-10 md:w-12 md:h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>
+        <div class="bg-gray-50 rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-3xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-slide-up md:animate-modal-in relative z-10 mt-auto md:mt-0 border-t border-white/50">
+            <div class="w-full flex justify-center pt-3 md:hidden absolute top-0 z-20" onclick="modalKapat()">
+                <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            </div>
+
+            <div class="bg-white p-5 pt-8 md:p-8 md:pt-8 border-b border-gray-100 flex justify-between items-start">
+                <div class="flex gap-4 md:gap-6 items-center">
+                    <div id="modalResimAlani" class="w-16 h-16 md:w-20 md:h-20 bg-brand-light rounded-2xl flex items-center justify-center text-brand-purple shrink-0 border border-brand-purple/10 overflow-hidden p-2">
+                        <!-- Dinamik Resim/İkon -->
                     </div>
                     <div>
-                        <span id="modalMarka" class="text-xs font-extrabold text-brand-purple uppercase tracking-widest bg-brand-light px-3 py-1 rounded-full"></span>
-                        <h2 id="modalOzet" class="text-2xl md:text-3xl font-black text-gray-800 mt-3 leading-tight"></h2>
-                        <p id="modalBaslik" class="text-sm text-gray-500 mt-2 line-clamp-2"></p>
+                        <span id="modalMarka" class="text-[10px] md:text-xs font-black text-brand-purple uppercase tracking-widest bg-brand-light px-3 py-1 rounded-md"></span>
+                        <h2 id="modalOzet" class="text-xl md:text-2xl font-black text-gray-900 mt-2 md:mt-3 leading-tight line-clamp-2"></h2>
                     </div>
                 </div>
-                <button onclick="modalKapat()" class="p-2 text-gray-400 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors shrink-0 ml-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <button onclick="modalKapat()" class="hidden md:flex p-2 text-gray-400 hover:text-gray-800 bg-gray-50 hover:bg-gray-200 rounded-full transition-colors shrink-0 ml-4 border border-gray-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             
-            <div class="p-6 md:p-8 overflow-y-auto flex-1">
-                <div class="bg-white p-6 rounded-2xl border border-gray-200 mb-8 flex flex-col md:flex-row justify-between items-center shadow-sm gap-4">
-                    <div class="text-center md:text-left">
-                        <div class="text-sm font-semibold text-gray-500 mb-1 flex items-center justify-center md:justify-start gap-2">
-                            <svg class="w-5 h-5 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            Kargo Dahil En Ucuz Fiyat
+            <div class="p-4 md:p-8 overflow-y-auto flex-1 bg-gray-50/50">
+                <div class="bg-white p-5 md:p-6 rounded-2xl border border-gray-100 mb-6 flex flex-col sm:flex-row justify-between items-center shadow-soft gap-4 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                    <div class="text-center sm:text-left relative z-10">
+                        <div class="text-xs md:text-sm font-bold text-gray-500 mb-1 flex items-center justify-center sm:justify-start gap-1">
+                            <svg class="w-4 h-4 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            En Ucuz Fiyat
                         </div>
-                        <div class="text-4xl md:text-5xl font-black text-brand-green flex items-baseline gap-2">
+                        <div class="text-4xl md:text-5xl font-black text-brand-green tracking-tight">
                             <span id="modalEnUcuz"></span>
                         </div>
-                        <div class="text-sm font-bold text-gray-400 mt-2 uppercase tracking-wide">Satıcı: <span id="modalEnUcuzPlatform" class="text-gray-700"></span></div>
+                        <div class="text-[11px] md:text-xs font-black text-gray-400 mt-2 uppercase tracking-widest">Satıcı: <span id="modalEnUcuzPlatform" class="text-gray-800"></span></div>
                     </div>
-                    <a id="modalEnUcuzLink" href="#" target="_blank" class="w-full md:w-auto bg-brand-purple hover:bg-brand-purpleHover text-white px-8 py-4 rounded-xl font-bold text-lg text-center shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
-                        Satıcıya Git ↗
+                    <a id="modalEnUcuzLink" href="#" target="_blank" class="w-full sm:w-auto bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-xl font-bold text-sm md:text-base text-center shadow-lg transition-all hover:scale-105 active:scale-95 relative z-10">
+                        Satın Al ↗
                     </a>
                 </div>
 
-                <div class="flex items-center justify-between mb-4 px-2">
-                    <h3 class="font-extrabold text-gray-800 text-lg">Tüm Fiyat Seçenekleri</h3>
-                    <span id="modalSaticiSayisi" class="text-sm font-bold text-gray-500 bg-gray-200 px-3 py-1 rounded-full"></span>
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h3 class="font-black text-gray-800 text-sm md:text-base uppercase tracking-wide">Diğer Seçenekler</h3>
+                    <span id="modalSaticiSayisi" class="text-xs font-bold text-gray-500 bg-gray-200/60 px-3 py-1 rounded-md"></span>
                 </div>
                 
-                <div id="modalSaticiListesi" class="flex flex-col gap-3">
+                <div id="modalSaticiListesi" class="flex flex-col gap-2 md:gap-3 pb-safe">
                     <!-- Dinamik Liste -->
                 </div>
             </div>
@@ -171,7 +213,7 @@
         function bildirimGoster(mesaj) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = "bg-gray-800 text-white px-6 py-3 rounded-xl shadow-2xl animate-fade-in-up font-semibold text-sm flex items-center gap-2";
+            toast.className = "bg-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl animate-fade-in-up font-bold text-sm flex items-center justify-center gap-2 border border-gray-700";
             toast.innerHTML = `<span>${mesaj}</span>`;
             container.appendChild(toast);
             setTimeout(() => {
@@ -179,7 +221,7 @@
                 toast.style.transform = 'translateY(10px)';
                 toast.style.transition = 'all 0.3s ease';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 2000);
         }
 
         document.getElementById('karsilastirBtn').addEventListener('click', () => {
@@ -187,7 +229,6 @@
             if(document.getElementById('aramaInput').value === "") document.getElementById('aramaInput').focus();
         });
 
-        // ŞİFRELER
         const SUPABASE_URL = 'https://bbemkqegyvbktqjbjqrr.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_7zBh_4xXoVGNxFujbpAGew_qhBb2HhU';
 
@@ -213,7 +254,6 @@
             if (!baslik) baslik = "Bilinmeyen Ürün"; 
             let k = baslik.toLowerCase();
 
-            // 1. ZEHİR TEMİZLEYİCİ: "11+ kg" veya "3-6 kg" gibi ifadeleri sil ki adet sayısıyla karışmasın
             k = k.replace(/\d+\s*\+?\s*-\s*\d+\s*kg/g, ''); 
             k = k.replace(/\d+\s*\+?\s*kg/g, ''); 
 
@@ -222,7 +262,6 @@
             let marka = markalar.find(m => k.includes(m));
             if (!marka) marka = baslik.split(' ')[0] || 'Bebek Bezi';
 
-            // Sadece önünde/arkasında numara, beden, boy yazan sayıları dikkate al (Yanlışlıkla 2 Adet'i numara yapmasını engeller)
             let numaraMatch = k.match(/([1-7])\s*(numara|beden|boy)/);
             let numara = numaraMatch ? numaraMatch[1] : '?';
             
@@ -255,9 +294,8 @@
             } catch (error) {
                 console.warn("Veri çekilemedi. Yedek veriler yükleniyor...", error);
                 const yedekVeriler = [
-                    { urun_adi: "Prima Premium Care 4 Numara 126 Adet Bebek Bezi", platform: "Trendyol", fiyat: "499,00 TL", urun_linki: "#" },
-                    { urun_adi: "Prima Premium Care 4 Numara 126 Adet", platform: "Hepsiburada", fiyat: "549,00 TL", urun_linki: "#" },
-                    { urun_adi: "Pinemed İdrar Torbalı Bebek Bezi (11+ kg) 2 Adet", platform: "N11", fiyat: "262,05 TL", urun_linki: "#" }
+                    { urun_adi: "Prima Premium Care 4 Numara 126 Adet Bebek Bezi", platform: "Trendyol", fiyat: "499,00 TL", urun_linki: "#", resim_url: "" },
+                    { urun_adi: "Sleepy Natural 5 Numara 100 Adet", platform: "N11", fiyat: "285,00 TL", urun_linki: "#", resim_url: "" }
                 ];
                 verileriIsle(yedekVeriler, false);
             }
@@ -271,7 +309,6 @@
 
                 let kimlik = urunKimligiCikar(urun.urun_adi);
                 
-                // Eğer ürünün numarası ve adedi aynı anda belirsizse bunu çöpe at
                 if(kimlik.grupKodu.includes('?-?')) return; 
 
                 if(!gruplar[kimlik.grupKodu]) {
@@ -280,12 +317,18 @@
                         grupIsmi: kimlik.grupIsmi,
                         orijinalIsim: urun.urun_adi, 
                         marka: kimlik.marka,
+                        resim: urun.resim_url || "", // Veritabanından gelen resmi yakalıyoruz
                         saticilar: []
                     };
                 }
 
                 if (urun.urun_adi.length > gruplar[kimlik.grupKodu].orijinalIsim.length) {
                     gruplar[kimlik.grupKodu].orijinalIsim = urun.urun_adi;
+                }
+                
+                // Eğer grubun resmi yoksa ama gelen üründe resim varsa, grubun resmi yap
+                if (!gruplar[kimlik.grupKodu].resim && urun.resim_url) {
+                    gruplar[kimlik.grupKodu].resim = urun.resim_url;
                 }
                 
                 let fiyatSayi = fiyatiSayiyaCevir(urun.fiyat);
@@ -314,7 +357,7 @@
 
             gruplanmisUrunler.sort((a, b) => a.enUcuzFiyat - b.enUcuzFiyat);
 
-            let durumMetni = gercekMi ? `<div class="flex items-center gap-2"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span class="text-green-600">Canlı Veri:</span> <span class="text-gray-700">${gruplanmisUrunler.length} benzersiz ürün</span> <span class="text-gray-400 text-xs hidden sm:inline ml-2">(Son Güncelleme: ${saatiGetir()})</span></div>` : `<span class="text-yellow-600">● Test Verisi Gösteriliyor</span>`;
+            let durumMetni = gercekMi ? `<div class="flex items-center gap-2"><div class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div><span class="text-green-700 hidden sm:inline">Canlı Veri:</span> <span class="text-gray-800">${gruplanmisUrunler.length} benzersiz ürün</span></div>` : `<span class="text-yellow-600">● Test Modu</span>`;
             document.getElementById('istatistikMetni').innerHTML = durumMetni;
             ekranaBas(gruplanmisUrunler);
         }
@@ -325,31 +368,38 @@
 
             gruplar.forEach((grup) => {
                 const kart = document.createElement('div');
-                kart.className = "bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover-lift flex flex-col h-full cursor-pointer group";
+                kart.className = "bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 hover-lift flex flex-col h-full cursor-pointer group relative overflow-hidden";
                 kart.onclick = () => detayAc(grup.grupKodu);
 
+                // EĞER RESİM VARSA RESMİ BAS, YOKSA ÇANTA İKONUNU BAS
+                let resimHTML = grup.resim 
+                    ? `<img src="${grup.resim}" alt="${grup.marka}" class="w-full h-full object-contain mix-blend-multiply drop-shadow-sm transition-transform group-hover:scale-110">` 
+                    : `<svg class="w-10 h-10 drop-shadow-sm group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>`;
+
                 kart.innerHTML = `
-                    <div class="flex flex-col items-center text-center mb-4 relative">
-                        <span class="absolute top-0 right-0 bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-1 rounded-md">${grup.saticilar.length} Satıcı</span>
-                        <div class="w-24 h-24 bg-brand-light rounded-2xl flex items-center justify-center text-brand-purple mb-4 group-hover:scale-110 transition-transform">
-                            <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>
+                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-brand-light rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
+                    <div class="flex flex-col items-center text-center mb-4 relative z-10">
+                        <div class="w-full flex justify-between items-start mb-2">
+                            <span class="text-[9px] font-black text-brand-purple uppercase tracking-widest bg-brand-light px-2 py-1 rounded">${grup.marka}</span>
+                            <span class="bg-gray-50 text-gray-400 text-[10px] font-bold px-2 py-1 rounded-md border border-gray-100">${grup.saticilar.length} Satıcı</span>
                         </div>
-                        <span class="text-[11px] font-extrabold text-brand-purple uppercase tracking-widest">${grup.marka}</span>
-                        <h3 class="text-base font-extrabold text-gray-800 leading-tight mt-1 line-clamp-2 px-2" title="${grup.grupIsmi}">${grup.grupIsmi}</h3>
-                        <div class="flex items-center gap-1 mt-2">
-                            <span class="text-yellow-400 text-sm">★★★★★</span>
+                        <div class="w-24 h-24 bg-transparent flex items-center justify-center text-gray-300 mb-2 group-hover:text-brand-purple transition-colors p-2">
+                            ${resimHTML}
                         </div>
+                        <h3 class="text-[15px] font-black text-gray-800 leading-tight line-clamp-2 px-1">${grup.grupIsmi}</h3>
                     </div>
                     
-                    <div class="mt-auto text-center border-t border-gray-50 pt-4">
-                        <div class="text-xs text-gray-500 font-bold mb-1 uppercase tracking-wide">En Ucuz</div>
-                        <div class="text-2xl font-black text-brand-green">${formatFiyat(grup.enUcuzFiyat)}</div>
-                        <div class="text-sm font-semibold text-gray-600 mt-1">${grup.saticilar[0].platform}</div>
+                    <div class="mt-auto pt-4 relative z-10 border-t border-gray-50/80">
+                        <div class="flex justify-between items-end">
+                            <div class="text-left">
+                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">En Ucuz</div>
+                                <div class="text-xl font-black text-brand-green">${formatFiyat(grup.enUcuzFiyat)}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[11px] font-extrabold text-gray-700 bg-gray-50 px-2 py-1 rounded">${grup.saticilar[0].platform}</div>
+                            </div>
+                        </div>
                     </div>
-
-                    <button class="w-full bg-brand-light group-hover:bg-brand-purple text-brand-purple group-hover:text-white font-bold py-3 rounded-xl transition-colors text-center mt-4">
-                        Tüm Fiyatları Gör
-                    </button>
                 `;
                 grid.appendChild(kart);
             });
@@ -361,36 +411,41 @@
 
             document.getElementById('modalMarka').innerText = grup.marka;
             document.getElementById('modalOzet').innerText = grup.grupIsmi;
-            document.getElementById('modalBaslik').innerText = grup.orijinalIsim;
             document.getElementById('modalEnUcuz').innerText = formatFiyat(grup.enUcuzFiyat);
             document.getElementById('modalEnUcuzPlatform').innerText = grup.saticilar[0].platform;
             document.getElementById('modalEnUcuzLink').href = grup.saticilar[0].link;
             document.getElementById('modalSaticiSayisi').innerText = `${grup.saticilar.length} Satıcı`;
 
+            // Modal içine de resmi basıyoruz
+            let modalResimHTML = grup.resim 
+                ? `<img src="${grup.resim}" alt="${grup.marka}" class="w-full h-full object-contain mix-blend-multiply">` 
+                : `<svg class="w-8 h-8 md:w-10 md:h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>`;
+            document.getElementById('modalResimAlani').innerHTML = modalResimHTML;
+
             let listeHTML = '';
             grup.saticilar.forEach((s, index) => {
-                let platformRenk = "text-gray-700";
-                let badgeClass = "bg-gray-100 text-gray-500 border-gray-200";
+                let platformRenk = "text-gray-800";
+                let badgeClass = "bg-white border-gray-200";
                 
-                if(s.platform === "Trendyol") { platformRenk = "text-orange-500"; badgeClass = "bg-orange-50 text-orange-600 border-orange-200"; }
-                if(s.platform === "Amazon TR") { platformRenk = "text-blue-600"; badgeClass = "bg-blue-50 text-blue-600 border-blue-200"; }
-                if(s.platform === "Hepsiburada") { platformRenk = "text-orange-600"; badgeClass = "bg-orange-50 text-orange-700 border-orange-200"; }
-                if(s.platform === "N11") { platformRenk = "text-purple-600"; badgeClass = "bg-purple-50 text-purple-600 border-purple-200"; }
+                if(s.platform === "Trendyol") { platformRenk = "text-orange-500"; badgeClass = "border-orange-100"; }
+                if(s.platform === "Amazon TR") { platformRenk = "text-blue-600"; badgeClass = "border-blue-100"; }
+                if(s.platform === "Hepsiburada") { platformRenk = "text-orange-600"; badgeClass = "border-orange-100"; }
+                if(s.platform === "N11") { platformRenk = "text-purple-600"; badgeClass = "border-purple-100"; }
 
-                let enUcuzMu = index === 0 ? `<span class="bg-brand-greenLight text-brand-green text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wide border border-green-200">En Ucuz</span>` : '';
+                let enUcuzMu = index === 0 ? `<span class="bg-brand-green text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-widest">En Ucuz</span>` : '';
 
                 listeHTML += `
-                    <div class="flex flex-col sm:flex-row justify-between items-center bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:border-brand-purple hover:shadow-md transition-all">
-                        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 mb-3 sm:mb-0 text-center sm:text-left">
-                            <span class="font-black text-xl ${platformRenk} border px-4 py-1.5 rounded-lg ${badgeClass}">${s.platform}</span>
-                            ${enUcuzMu}
+                    <div class="flex items-center justify-between bg-white p-3 md:p-4 rounded-xl border ${badgeClass} shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-black text-sm md:text-base ${platformRenk}">${s.platform}</span>
+                                ${enUcuzMu}
+                            </div>
+                            <span class="text-lg md:text-xl font-black text-gray-900">${formatFiyat(s.fiyatSayi)}</span>
                         </div>
-                        <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full sm:w-auto">
-                            <span class="text-2xl font-black text-gray-900">${formatFiyat(s.fiyatSayi)}</span>
-                            <a href="${s.link}" target="_blank" class="w-full sm:w-auto bg-brand-light hover:bg-brand-purple text-brand-purple hover:text-white border border-brand-purple px-6 py-3 rounded-lg font-bold transition-colors text-center">
-                                Satıcıya Git ↗
-                            </a>
-                        </div>
+                        <a href="${s.link}" target="_blank" class="bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 px-4 py-2 md:px-6 md:py-3 rounded-lg font-bold text-xs md:text-sm transition-colors flex items-center gap-1 active:scale-95">
+                            Git <span class="hidden sm:inline">↗</span>
+                        </a>
                     </div>
                 `;
             });
@@ -415,15 +470,8 @@
             ekranaBas(filtrelenmis);
         });
 
-        // Site açılışında verileri çek
         urunleriCekVeGrupla();
-
-        // 30 DAKİKADA BİR OTOMATİK YENİLEME MOTORU (1800000 milisaniye)
-        setInterval(() => {
-            console.log("30 dakika doldu, veriler otomatik olarak yenileniyor...");
-            urunleriCekVeGrupla();
-        }, 1800000);
-
+        setInterval(() => { urunleriCekVeGrupla(); }, 1800000);
     </script>
 </body>
 </html>
