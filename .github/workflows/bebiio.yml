@@ -26,4 +26,6 @@ jobs:
           playwright install --with-deps chromium
 
       - name: 🚀 Motoru Ateşle
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python scraper.py

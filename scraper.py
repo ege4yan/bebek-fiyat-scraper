@@ -2,65 +2,111 @@
 import re
 import time
 import logging
-import psycopg2
-import requests
 from urllib.parse import urljoin
+
+import psycopg2
+from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
+
+try:
+    from playwright_stealth import stealth_sync
+    STEALTH_VAR = True
+except ImportError:
+    STEALTH_VAR = False
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("bebiio_scraper")
 
-SUPABASE_DB_URL = "postgresql://postgres.bbemkqegyvbktqjbjqrr:EgeKuzen2026@aws-1-eu-west-1.pooler.supabase.com:6543/postgres"
+SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
+if not SUPABASE_DB_URL:
+    raise RuntimeError(
+        "SUPABASE_DB_URL ortam değişkeni bulunamadı. "
+        "Yerelde .env dosyasına, GitHub Actions'ta Secrets'a ekleyin."
+    )
 
-# HTTP İstekleri için normal insan kimliği (Bunu görünce Cloudflare genelde izin verir)
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Connection": "keep-alive"
-}
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+DEBUG_DIR = "debug_output"
+os.makedirs(DEBUG_DIR, exist_ok=True)
+
+
+def debug_snapshot(page, platform_name):
+    """Kart bulunamadığında sayfanın o anki ekran görüntüsünü ve HTML'ini kaydeder.
+    GitHub Actions'ta bu klasör artifact olarak indirilebiliyor (bkz. bebiio.yml).
+    Bot koruması mı yoksa selector mı bozuldu, ayırt etmek için şart."""
+    try:
+        safe_name = platform_name.lower().replace(" ", "_")
+        page.screenshot(path=f"{DEBUG_DIR}/{safe_name}.png", full_page=True)
+        with open(f"{DEBUG_DIR}/{safe_name}.html", "w", encoding="utf-8") as f:
+            f.write(page.content())
+        log.warning(f"[{platform_name}] Debug görüntüsü/HTML'i {DEBUG_DIR}/{safe_name}.* içine kaydedildi.")
+    except Exception as e:
+        log.warning(f"[{platform_name}] Debug snapshot alınamadı: {e}")
+
+
+def yeni_sayfa_olustur(context):
+    page = context.new_page()
+    if STEALTH_VAR:
+        stealth_sync(page)
+    return page
+
 
 def fiyati_temizle(fiyat_metni):
-    if not fiyat_metni: return ""
+    if not fiyat_metni:
+        return ""
     temiz = re.sub(r'[^\d,.]', '', fiyat_metni).strip('.,')
-    if not temiz: return ""
+    if not temiz:
+        return ""
     return temiz + " TL"
 
+
 def resmi_temizle(img_el, base_url=""):
-    if not img_el: return ""
+    if not img_el:
+        return ""
     for attr in ("data-src", "data-lazy-src", "src", "srcset"):
         val = img_el.get(attr)
         if val:
             url = val.split(",")[0].strip().split(" ")[0]
-            if url.startswith("//"): url = "https:" + url
-            elif url.startswith("/") and base_url: url = urljoin(base_url, url)
+            if url.startswith("//"):
+                url = "https:" + url
+            elif url.startswith("/") and base_url:
+                url = urljoin(base_url, url)
             return url
     return ""
 
+
 def urun_gecerli_mi(baslik):
-    if not baslik: return False
+    if not baslik:
+        return False
     b = baslik.lower()
-    yasaklilar = ['mendil', 'krem', 'havlu', 'şampuan', 'deterjan', 'sabun', 'ped', 'alt açma', 'losyon', 'emzik', 'biberon', 'yatak', 'örtü']
-    for y in yasaklilar:
-        if y in b: return False
-    return True
+    yasaklilar = ['mendil', 'krem', 'havlu', 'şampuan', 'deterjan', 'sabun', 'ped',
+                  'alt açma', 'losyon', 'emzik', 'biberon', 'yatak', 'örtü']
+    return not any(y in b for y in yasaklilar)
+
 
 def scroll_page(page):
     for _ in range(6):
         page.evaluate("window.scrollBy(0, 1000)")
         time.sleep(1)
 
+
+def yeni_context(browser):
+    return browser.new_context(viewport={'width': 1920, 'height': 1080}, user_agent=UA, locale="tr-TR")
+
+
 # ==========================================
-# 1. AMAZON (PLAYWRIGHT İLE DEVAM - ÇALIŞIYOR)
+# 1. AMAZON — çalışıyor, dokunulmadı
 # ==========================================
 def amazon_tara(max_sayfa=1):
     all_products = []
     base_url = "https://www.amazon.com.tr/s?k=bebek+bezi&i=baby&ref=nb_sb_noss_2"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
-        context = browser.new_context(viewport={'width': 1920, 'height': 1080}, user_agent=HEADERS["User-Agent"])
-        page = context.new_page()
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
         for sayfa_no in range(1, max_sayfa + 1):
             url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
             print(f"\n[Amazon TR] Sayfa {sayfa_no} taranıyor...")
@@ -70,27 +116,35 @@ def amazon_tara(max_sayfa=1):
                 page.goto(url, timeout=60000)
                 time.sleep(3)
                 scroll_page(page)
-            except Exception as e: log.warning(f"[Amazon] Hata: {e}")
+            except Exception as e:
+                log.warning(f"[Amazon] Hata: {e}")
 
             soup = BeautifulSoup(page.content(), 'html.parser')
             cards = soup.select('div[data-component-type="s-search-result"]')
-            if not cards: cards = soup.find_all("div", attrs={"data-asin": True})
+            if not cards:
+                cards = soup.find_all("div", attrs={"data-asin": True})
+            if not cards:
+                debug_snapshot(page, "Amazon TR")
 
             eklenen = 0
             for card in cards:
                 try:
                     title_el = card.select_one("h2 span") or card.select_one("span.a-text-normal")
-                    if not title_el or len(title_el.text) < 5: continue
+                    if not title_el or len(title_el.text) < 5:
+                        continue
                     baslik = title_el.text.strip()
-                    if not urun_gecerli_mi(baslik): continue
+                    if not urun_gecerli_mi(baslik):
+                        continue
 
                     link_el = card.select_one("h2 a") or card.select_one(f"a[href*='/{card.get('data-asin')}/']")
                     price_box = card.select_one("span.a-price:not(.a-text-price)")
-                    if not link_el or not price_box: continue
-                    
+                    if not link_el or not price_box:
+                        continue
+
                     whole = price_box.select_one(".a-price-whole")
                     fraction = price_box.select_one(".a-price-fraction")
-                    if not whole: continue
+                    if not whole:
+                        continue
 
                     fiyat_metni = f"{whole.text.strip().replace(',', '').replace('.', '')},{fraction.text.strip() if fraction else '00'}"
                     temiz_fiyat = fiyati_temizle(fiyat_metni)
@@ -105,133 +159,438 @@ def amazon_tara(max_sayfa=1):
                             "Resim": resim
                         })
                         eklenen += 1
-                except: continue
+                except Exception:
+                    continue
             print(f"[Amazon TR] Sayfa {sayfa_no} üzerinden {eklenen} net ürün yakalandı.")
         browser.close()
     return all_products
 
+
 # ==========================================
-# 2. TRENDYOL, N11, HEPSİBURADA (SESSİZ HTTP İSTEĞİ)
+# 2. TRENDYOL — HTTP'den Playwright'a geri döndürüldü
 # ==========================================
 def trendyol_tara(max_sayfa=1):
     all_products = []
     base_url = "https://www.trendyol.com/bebek-bezi-x-c1363"
-    for sayfa_no in range(1, max_sayfa + 1):
-        url = f"{base_url}?pi={sayfa_no}" if sayfa_no > 1 else base_url
-        print(f"\n[Trendyol] Sayfa {sayfa_no} HTTP ile taranıyor...")
-        try:
-            response = requests.get(url, headers=HEADERS, timeout=20)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            cards = soup.find_all('div', class_='p-card-wrppr')
-            eklenen = 0
-            for card in cards:
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?pi={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[Trendyol] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
                 try:
-                    link_el = card.select_one("a.p-card-chldrn-cntnr") or card.find('a', href=True)
-                    price_el = card.find('div', class_='prc-box-dscntd') or card.find('div', class_='prc-box-sllng')
-                    if not link_el or not price_el: continue
+                    page.wait_for_selector('.prc-box-dscntd, .p-card-wrppr', timeout=10000)
+                except Exception:
+                    log.info("[Trendyol] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                cards = soup.find_all('div', class_='p-card-wrppr')
+                if not cards:
+                    log.warning("[Trendyol] Hiç kart bulunamadı.")
+                    debug_snapshot(page, "Trendyol")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        link_el = card.select_one("a.p-card-chldrn-cntnr") or card.find('a', href=True)
+                        price_el = card.find('div', class_='prc-box-dscntd') or card.find('div', class_='prc-box-sllng')
+                        if not link_el or not price_el:
+                            continue
 
-                    title_div = card.find('div', class_='prdct-desc-cntnr-ttl')
-                    if title_div and title_div.get('title'): title = title_div.get('title').strip()
-                    else:
-                        brand_el = card.find('span', class_='prdct-desc-brnd')
-                        name_el = card.find('span', class_='prdct-desc-cntnr-name')
-                        title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
+                        title_div = card.find('div', class_='prdct-desc-cntnr-ttl')
+                        if title_div and title_div.get('title'):
+                            title = title_div.get('title').strip()
+                        else:
+                            brand_el = card.find('span', class_='prdct-desc-brnd')
+                            name_el = card.find('span', class_='prdct-desc-cntnr-name')
+                            title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
 
-                    if not urun_gecerli_mi(title): continue
+                        if not urun_gecerli_mi(title):
+                            continue
 
-                    temiz_fiyat = fiyati_temizle(price_el.text)
-                    img_el = card.select_one("img")
-                    resim = resmi_temizle(img_el, "https://www.trendyol.com")
+                        temiz_fiyat = fiyati_temizle(price_el.text)
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.trendyol.com")
 
-                    if len(title) > 5 and temiz_fiyat:
-                        all_products.append({
-                            "Platform": "Trendyol", "Kategori": "Bebek Bezi",
-                            "Ürün Adı": title, "Fiyat": temiz_fiyat,
-                            "Ürün Linki": urljoin("https://www.trendyol.com", link_el['href']),
-                            "Resim": resim
-                        })
-                        eklenen += 1
-                except: continue
-            print(f"[Trendyol] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
-        except Exception as e: print(f"[Trendyol] HTTP Hata: {e}")
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "Trendyol", "Kategori": "Bebek Bezi",
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": urljoin("https://www.trendyol.com", link_el['href']),
+                                "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[Trendyol] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[Trendyol] Sayfa hatası: {e}")
+        browser.close()
     return all_products
 
+
+# ==========================================
+# 3. N11 — HTTP'den Playwright'a geri döndürüldü
+# ==========================================
 def n11_tara(max_sayfa=1):
     all_products = []
     base_url = "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi"
-    for sayfa_no in range(1, max_sayfa + 1):
-        url = f"{base_url}?pg={sayfa_no}" if sayfa_no > 1 else base_url
-        print(f"\n[N11] Sayfa {sayfa_no} HTTP ile taranıyor...")
-        try:
-            response = requests.get(url, headers=HEADERS, timeout=20)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            cards = soup.find_all('li', class_='column')
-            eklenen = 0
-            for card in cards:
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?pg={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[N11] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
                 try:
-                    link_el = card.find('a', class_='plink')
-                    price_el = card.find('ins') or card.find('span', class_='newPrice')
-                    if not link_el or not price_el: continue
+                    page.wait_for_selector('ins, li.column', timeout=10000)
+                except Exception:
+                    log.info("[N11] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                cards = soup.find_all('li', class_='column')
+                if not cards:
+                    log.warning("[N11] Hiç kart bulunamadı.")
+                    debug_snapshot(page, "N11")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        link_el = card.find('a', class_='plink')
+                        price_el = card.find('ins') or card.find('span', class_='newPrice')
+                        if not link_el or not price_el:
+                            continue
 
-                    title = link_el.get('title', '').strip()
-                    if not urun_gecerli_mi(title): continue
+                        title = link_el.get('title', '').strip()
+                        if not urun_gecerli_mi(title):
+                            continue
 
-                    temiz_fiyat = fiyati_temizle(price_el.text)
-                    img_el = card.select_one("img")
-                    resim = resmi_temizle(img_el, "https://www.n11.com")
-                    href = urljoin("https://www.n11.com", link_el.get('href', ''))
+                        temiz_fiyat = fiyati_temizle(price_el.text)
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.n11.com")
+                        href = urljoin("https://www.n11.com", link_el.get('href', ''))
 
-                    if len(title) > 10 and temiz_fiyat:
-                        all_products.append({
-                            "Platform": "N11", "Kategori": "Bebek Bezi",
-                            "Ürün Adı": title, "Fiyat": temiz_fiyat,
-                            "Ürün Linki": href, "Resim": resim
-                        })
-                        eklenen += 1
-                except: continue
-            print(f"[N11] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
-        except Exception as e: print(f"[N11] HTTP Hata: {e}")
+                        if len(title) > 10 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "N11", "Kategori": "Bebek Bezi",
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[N11] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[N11] Sayfa hatası: {e}")
+        browser.close()
     return all_products
 
+
+# ==========================================
+# 4. HEPSİBURADA — HTTP'den Playwright'a geri döndürüldü
+# ==========================================
 def hepsiburada_tara(max_sayfa=1):
     all_products = []
     base_url = "https://www.hepsiburada.com/bebek-bezleri-c-60001049"
-    for sayfa_no in range(1, max_sayfa + 1):
-        url = f"{base_url}?sayfa={sayfa_no}" if sayfa_no > 1 else base_url
-        print(f"\n[Hepsiburada] Sayfa {sayfa_no} HTTP ile taranıyor...")
-        try:
-            response = requests.get(url, headers=HEADERS, timeout=20)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            cards = soup.find_all('li', attrs={'data-index': True})
-            if not cards: cards = soup.find_all('li', class_=re.compile(r'productListContent'))
-            
-            eklenen = 0
-            for card in cards:
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?sayfa={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[Hepsiburada] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
                 try:
-                    link_el = card.find('a', href=True)
-                    title_el = card.find(attrs={"data-test-id": re.compile(r'title', re.IGNORECASE)}) or card.find('h3')
-                    price_el = card.find(attrs={"data-test-id": "price-current-price"}) or card.find("div", {"data-test-id": "product-price"})
-                    if not link_el or not title_el or not price_el: continue
+                    page.wait_for_selector('[data-test-id="price-current-price"]', timeout=10000)
+                except Exception:
+                    log.info("[Hepsiburada] Selector zaman aşımına uğradı.")
+                    debug_snapshot(page, "Hepsiburada")
+                scroll_page(page)
 
-                    title = title_el.text.strip()
-                    if not urun_gecerli_mi(title): continue
-                    
-                    temiz_fiyat = fiyati_temizle(price_el.text)
-                    img_el = card.find('img')
-                    resim = resmi_temizle(img_el, "https://www.hepsiburada.com")
-                    href = urljoin("https://www.hepsiburada.com", link_el['href'])
+                extracted_data = page.evaluate('''() => {
+                    let items = [];
+                    let cards = document.querySelectorAll("li[data-index]");
+                    cards.forEach(card => {
+                        let a_tag = card.querySelector("a");
+                        let title_tag = card.querySelector("[data-test-id*='title']") || card.querySelector("h3");
+                        let price_tag = card.querySelector("[data-test-id='price-current-price']");
+                        let img_tag = card.querySelector("img");
+                        if (a_tag && title_tag && price_tag) {
+                            items.push({
+                                title: title_tag.innerText.trim(),
+                                price: price_tag.innerText.trim(),
+                                link: a_tag.getAttribute("href"),
+                                image: img_tag ? (img_tag.getAttribute("src") || img_tag.getAttribute("data-src") || "") : ""
+                            });
+                        }
+                    });
+                    return items;
+                }''')
 
-                    if len(title) > 5 and temiz_fiyat:
-                        all_products.append({
-                            "Platform": "Hepsiburada", "Kategori": "Bebek Bezi",
-                            "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": href,
-                            "Resim": resim
-                        })
-                        eklenen += 1
-                except: continue
-            print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
-        except Exception as e: print(f"[Hepsiburada] HTTP Hata: {e}")
+                if not extracted_data:
+                    log.warning("[Hepsiburada] Hiç kart bulunamadı.")
+                    debug_snapshot(page, "Hepsiburada")
+
+                eklenen = 0
+                for data in extracted_data:
+                    try:
+                        title = data.get("title", "")
+                        if not urun_gecerli_mi(title):
+                            continue
+                        raw_price = data.get("price", "")
+                        href = urljoin("https://www.hepsiburada.com", data.get("link", ""))
+                        resim = data.get("image", "")
+                        if resim.startswith("//"):
+                            resim = "https:" + resim
+                        elif resim.startswith("/"):
+                            resim = urljoin("https://www.hepsiburada.com", resim)
+
+                        temiz_fiyat = fiyati_temizle(raw_price)
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "Hepsiburada", "Kategori": "Bebek Bezi",
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": href,
+                                "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                print(f"Hepsiburada Hata: {e}")
+        browser.close()
     return all_products
+
+
+# ==========================================
+# 5. EBEBEK — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
+# ==========================================
+def ebebek_tara(max_sayfa=1):
+    all_products = []
+    base_url = "https://www.ebebek.com/bebek-bezi"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[eBebek] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('.product-item, [class*="product-card"]', timeout=10000)
+                except Exception:
+                    log.info("[eBebek] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                cards = soup.select('.product-item') or soup.select('[class*="product-card"]')
+                if not cards:
+                    log.warning("[eBebek] Hiç kart bulunamadı — selector doğrulanmalı.")
+                    debug_snapshot(page, "eBebek")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        title_el = card.select_one('.product-name') or card.select_one('[class*="name"]')
+                        price_el = card.select_one('.product-price') or card.select_one('[class*="price"]')
+                        link_el = card.select_one('a[href]')
+                        if not title_el or not price_el or not link_el:
+                            continue
+                        title = title_el.text.strip()
+                        if not urun_gecerli_mi(title):
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.text)
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.ebebek.com")
+                        href = urljoin("https://www.ebebek.com", link_el.get('href', ''))
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "eBebek", "Kategori": "Bebek Bezi",
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[eBebek] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[eBebek] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 6. PAZARAMA — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
+# ==========================================
+def pazarama_tara(max_sayfa=1):
+    all_products = []
+    base_url = "https://www.pazarama.com/arama?q=bebek%20bezi"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[Pazarama] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('[class*="product-card"], [class*="ProductCard"]', timeout=10000)
+                except Exception:
+                    log.info("[Pazarama] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                cards = soup.select('[class*="product-card"]') or soup.select('[class*="ProductCard"]')
+                if not cards:
+                    log.warning("[Pazarama] Hiç kart bulunamadı — selector doğrulanmalı.")
+                    debug_snapshot(page, "Pazarama")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        title_el = card.select_one('[class*="name"]') or card.select_one('[class*="title"]')
+                        price_el = card.select_one('[class*="price"]')
+                        link_el = card.select_one('a[href]')
+                        if not title_el or not price_el or not link_el:
+                            continue
+                        title = title_el.text.strip()
+                        if not urun_gecerli_mi(title):
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.text)
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.pazarama.com")
+                        href = urljoin("https://www.pazarama.com", link_el.get('href', ''))
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "Pazarama", "Kategori": "Bebek Bezi",
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[Pazarama] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[Pazarama] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 7. İDEFİX — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
+# NOT: idefix esasen kitap/kırtasiye odaklı; bebek bezi stoku çok sınırlı
+# veya hiç olmayabilir. 0 ürün gelmesi burada selector hatası olmayabilir.
+# ==========================================
+def idefix_tara(max_sayfa=1):
+    all_products = []
+    base_url = "https://www.idefix.com/search?q=bebek+bezi"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[idefix] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('[class*="product"]', timeout=10000)
+                except Exception:
+                    log.info("[idefix] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                cards = soup.select('[class*="product-item"]') or soup.select('[class*="product-card"]')
+                if not cards:
+                    log.warning("[idefix] Hiç kart bulunamadı — selector doğrulanmalı ya da kategori mevcut değil.")
+                    debug_snapshot(page, "idefix")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        title_el = card.select_one('[class*="name"]') or card.select_one('[class*="title"]')
+                        price_el = card.select_one('[class*="price"]')
+                        link_el = card.select_one('a[href]')
+                        if not title_el or not price_el or not link_el:
+                            continue
+                        title = title_el.text.strip()
+                        if not urun_gecerli_mi(title):
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.text)
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.idefix.com")
+                        href = urljoin("https://www.idefix.com", link_el.get('href', ''))
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "idefix", "Kategori": "Bebek Bezi",
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[idefix] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[idefix] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 8. PTTAVM — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
+# ==========================================
+def pttavm_tara(max_sayfa=1):
+    all_products = []
+    base_url = "https://www.pttavm.com/arama?q=bebek+bezi"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[PTTAVM] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('[class*="product"]', timeout=10000)
+                except Exception:
+                    log.info("[PTTAVM] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                cards = soup.select('[class*="product-item"]') or soup.select('[class*="product-box"]')
+                if not cards:
+                    log.warning("[PTTAVM] Hiç kart bulunamadı — selector doğrulanmalı.")
+                    debug_snapshot(page, "PTTAVM")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        title_el = card.select_one('[class*="name"]') or card.select_one('[class*="title"]')
+                        price_el = card.select_one('[class*="price"]')
+                        link_el = card.select_one('a[href]')
+                        if not title_el or not price_el or not link_el:
+                            continue
+                        title = title_el.text.strip()
+                        if not urun_gecerli_mi(title):
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.text)
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.pttavm.com")
+                        href = urljoin("https://www.pttavm.com", link_el.get('href', ''))
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "PTTAVM", "Kategori": "Bebek Bezi",
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[PTTAVM] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[PTTAVM] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
 
 def save_to_db(all_products):
     if not all_products:
@@ -251,21 +610,29 @@ def save_to_db(all_products):
                 """
                 cur.execute(query, (urun["Platform"], urun["Kategori"], urun["Ürün Adı"], urun["Fiyat"], urun["Ürün Linki"], urun.get("Resim", "")))
                 eklenen += 1
-            except: conn.rollback()
+            except Exception as e:
+                log.warning(f"DB insert hatası ({urun.get('Ürün Linki')}): {e}")
+                conn.rollback()
         conn.commit()
         cur.close()
         conn.close()
         print(f"\n✅ ZAFER! Toplam {eklenen} ürün başarıyla Supabase'e kaydedildi!")
-    except Exception as e: print(f"❌ Veritabanı bağlantı hatası: {e}")
+    except Exception as e:
+        print(f"❌ Veritabanı bağlantı hatası: {e}")
+
 
 if __name__ == "__main__":
-    print("🚀 Bebiio Anti-Cloudflare Motoru Başlatıldı!\n")
+    print("🚀 Bebiio Kusursuz Fiyat Motoru Başlatıldı!\n")
     try:
         toplam_urunler = []
-        toplam_urunler.extend(trendyol_tara(1))
-        toplam_urunler.extend(n11_tara(1))
-        toplam_urunler.extend(hepsiburada_tara(1))
-        toplam_urunler.extend(amazon_tara(1))
+        toplam_urunler.extend(amazon_tara(2))
+        toplam_urunler.extend(trendyol_tara(2))
+        toplam_urunler.extend(n11_tara(2))
+        toplam_urunler.extend(hepsiburada_tara(2))
+        toplam_urunler.extend(ebebek_tara(2))
+        toplam_urunler.extend(pazarama_tara(2))
+        toplam_urunler.extend(idefix_tara(2))
+        toplam_urunler.extend(pttavm_tara(2))
 
         print(f"\n🎉 Tarama tamamlandı! Toplam {len(toplam_urunler)} ürün yakalandı. DB'ye yazılıyor...")
         save_to_db(toplam_urunler)
