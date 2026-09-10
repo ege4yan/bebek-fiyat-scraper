@@ -182,35 +182,41 @@ def trendyol_tara(max_sayfa=1):
             try:
                 page.goto(url, timeout=60000)
                 try:
-                    page.wait_for_selector('.prc-box-dscntd, .p-card-wrppr', timeout=10000)
+                    page.wait_for_selector('.product-card', timeout=10000)
                 except Exception:
                     log.info("[Trendyol] Selector zaman aşımına uğradı.")
                 scroll_page(page)
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                cards = soup.find_all('div', class_='p-card-wrppr')
+                # GÜNCEL SELECTOR (2026-09): Trendyol artık kartı a.product-card
+                # olarak render ediyor; kartın kendisi zaten ürün linki.
+                cards = soup.select('.product-card')
                 if not cards:
                     log.warning("[Trendyol] Hiç kart bulunamadı.")
                     debug_snapshot(page, "Trendyol")
                 eklenen = 0
                 for card in cards:
                     try:
-                        link_el = card.select_one("a.p-card-chldrn-cntnr") or card.find('a', href=True)
-                        price_el = card.find('div', class_='prc-box-dscntd') or card.find('div', class_='prc-box-sllng')
-                        if not link_el or not price_el:
+                        href = card.get('href')
+                        if not href:
                             continue
 
-                        title_div = card.find('div', class_='prdct-desc-cntnr-ttl')
-                        if title_div and title_div.get('title'):
-                            title = title_div.get('title').strip()
-                        else:
-                            brand_el = card.find('span', class_='prdct-desc-brnd')
-                            name_el = card.find('span', class_='prdct-desc-cntnr-name')
-                            title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
-
+                        brand_el = card.select_one('.product-brand')
+                        name_el = card.select_one('.product-name')
+                        title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
                         if not urun_gecerli_mi(title):
                             continue
 
+                        price_box = card.select_one('.product-card-price')
+                        if not price_box:
+                            continue
+                        # İndirimli üründe gerçek fiyat data-testid="price-value" içinde,
+                        # normal üründe .single-price .price-section içinde.
+                        price_el = price_box.select_one('[data-testid="price-value"]') \
+                            or price_box.select_one('.price-section')
+                        if not price_el:
+                            continue
                         temiz_fiyat = fiyati_temizle(price_el.text)
+
                         img_el = card.select_one("img")
                         resim = resmi_temizle(img_el, "https://www.trendyol.com")
 
@@ -218,7 +224,7 @@ def trendyol_tara(max_sayfa=1):
                             all_products.append({
                                 "Platform": "Trendyol", "Kategori": "Bebek Bezi",
                                 "Ürün Adı": title, "Fiyat": temiz_fiyat,
-                                "Ürün Linki": urljoin("https://www.trendyol.com", link_el['href']),
+                                "Ürün Linki": urljoin("https://www.trendyol.com", href),
                                 "Resim": resim
                             })
                             eklenen += 1
@@ -247,31 +253,37 @@ def n11_tara(max_sayfa=1):
             try:
                 page.goto(url, timeout=60000)
                 try:
-                    page.wait_for_selector('ins, li.column', timeout=10000)
+                    page.wait_for_selector('.product-item', timeout=10000)
                 except Exception:
                     log.info("[N11] Selector zaman aşımına uğradı.")
                 scroll_page(page)
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                cards = soup.find_all('li', class_='column')
+                # GÜNCEL SELECTOR (2026-09): a.product-item kartın kendisi, tam URL zaten href'te.
+                cards = soup.select('.product-item')
                 if not cards:
                     log.warning("[N11] Hiç kart bulunamadı.")
                     debug_snapshot(page, "N11")
                 eklenen = 0
                 for card in cards:
                     try:
-                        link_el = card.find('a', class_='plink')
-                        price_el = card.find('ins') or card.find('span', class_='newPrice')
-                        if not link_el or not price_el:
+                        href = card.get('href')
+                        title_el = card.select_one('.product-item-title')
+                        price_area = card.select_one('.price-area')
+                        if not href or not title_el or not price_area:
                             continue
 
-                        title = link_el.get('title', '').strip()
+                        title = title_el.text.strip()
                         if not urun_gecerli_mi(title):
                             continue
 
+                        # Güncel fiyat h3.price-currency içinde; .old-price üstü çizili eski fiyat.
+                        price_el = price_area.select_one('h3.price-currency')
+                        if not price_el:
+                            continue
                         temiz_fiyat = fiyati_temizle(price_el.text)
-                        img_el = card.select_one("img")
+
+                        img_el = card.select_one("img.listing-items-image") or card.select_one("img")
                         resim = resmi_temizle(img_el, "https://www.n11.com")
-                        href = urljoin("https://www.n11.com", link_el.get('href', ''))
 
                         if len(title) > 10 and temiz_fiyat:
                             all_products.append({
@@ -625,14 +637,14 @@ if __name__ == "__main__":
     print("🚀 Bebiio Kusursuz Fiyat Motoru Başlatıldı!\n")
     try:
         toplam_urunler = []
-        toplam_urunler.extend(amazon_tara(2))
-        toplam_urunler.extend(trendyol_tara(2))
-        toplam_urunler.extend(n11_tara(2))
-        toplam_urunler.extend(hepsiburada_tara(2))
-        toplam_urunler.extend(ebebek_tara(2))
-        toplam_urunler.extend(pazarama_tara(2))
-        toplam_urunler.extend(idefix_tara(2))
-        toplam_urunler.extend(pttavm_tara(2))
+        toplam_urunler.extend(amazon_tara(1))
+        toplam_urunler.extend(trendyol_tara(1))
+        toplam_urunler.extend(n11_tara(1))
+        toplam_urunler.extend(hepsiburada_tara(1))
+        toplam_urunler.extend(ebebek_tara(1))
+        toplam_urunler.extend(pazarama_tara(1))
+        toplam_urunler.extend(idefix_tara(1))
+        toplam_urunler.extend(pttavm_tara(1))
 
         print(f"\n🎉 Tarama tamamlandı! Toplam {len(toplam_urunler)} ürün yakalandı. DB'ye yazılıyor...")
         save_to_db(toplam_urunler)
