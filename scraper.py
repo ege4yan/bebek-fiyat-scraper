@@ -90,13 +90,19 @@ def resmi_temizle(img_el, base_url=""):
     return ""
 
 
-def urun_gecerli_mi(baslik):
+def urun_gecerli_mi(baslik, kategori="Bebek Bezi"):
+    """Kategoriye gore alakasiz urunleri eler. 'Bebek Bezi' kategorisinde
+    diger bebek bakim urunlerini (mendil, krem vb.) bilerek disliyoruz;
+    diger kategorilerde (Islak Mendil, Biberon, Mama, Emzik...) bu kisitlama
+    gecerli degil, cunku aradigimiz zaten o urun turu."""
     if not baslik:
         return False
     b = baslik.lower()
-    yasaklilar = ['mendil', 'krem', 'havlu', 'şampuan', 'deterjan', 'sabun', 'ped',
-                  'alt açma', 'losyon', 'emzik', 'biberon', 'yatak', 'örtü']
-    return not any(y in b for y in yasaklilar)
+    if kategori == "Bebek Bezi":
+        yasaklilar = ['mendil', 'krem', 'havlu', 'şampuan', 'deterjan', 'sabun', 'ped',
+                      'alt açma', 'losyon', 'emzik', 'biberon', 'yatak', 'örtü']
+        return not any(y in b for y in yasaklilar)
+    return True
 
 
 def scroll_page(page, adim=6):
@@ -112,9 +118,9 @@ def yeni_context(browser):
 # ==========================================
 # 1. AMAZON — çalışıyor, dokunulmadı
 # ==========================================
-def amazon_tara(max_sayfa=1):
+def amazon_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
     all_products = []
-    base_url = "https://www.amazon.com.tr/s?k=bebek+bezi&i=baby&ref=nb_sb_noss_2"
+    base_url = url or "https://www.amazon.com.tr/s?k=bebek+bezi&i=baby&ref=nb_sb_noss_2"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -136,7 +142,7 @@ def amazon_tara(max_sayfa=1):
             if not cards:
                 cards = soup.find_all("div", attrs={"data-asin": True})
             if not cards:
-                debug_snapshot(page, "Amazon TR")
+                debug_snapshot(page, f"Amazon TR_{kategori}")
 
             eklenen = 0
             for card in cards:
@@ -145,7 +151,7 @@ def amazon_tara(max_sayfa=1):
                     if not title_el or len(title_el.text) < 5:
                         continue
                     baslik = title_el.text.strip()
-                    if not urun_gecerli_mi(baslik):
+                    if not urun_gecerli_mi(baslik, kategori):
                         continue
 
                     link_el = card.select_one("h2 a") or card.select_one(f"a[href*='/{card.get('data-asin')}/']")
@@ -165,7 +171,7 @@ def amazon_tara(max_sayfa=1):
 
                     if temiz_fiyat:
                         all_products.append({
-                            "Platform": "Amazon TR", "Kategori": "Bebek Bezi",
+                            "Platform": "Amazon TR", "Kategori": kategori,
                             "Ürün Adı": baslik, "Fiyat": temiz_fiyat,
                             "Ürün Linki": "https://www.amazon.com.tr" + link_el.get('href', ''),
                             "Resim": resim
@@ -181,9 +187,9 @@ def amazon_tara(max_sayfa=1):
 # ==========================================
 # 2. TRENDYOL — HTTP'den Playwright'a geri döndürüldü
 # ==========================================
-def trendyol_tara(max_sayfa=1):
+def trendyol_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
     all_products = []
-    base_url = "https://www.trendyol.com/bebek-bezi-x-c1363"
+    base_url = url or "https://www.trendyol.com/bebek-bezi-x-c1363"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -204,7 +210,7 @@ def trendyol_tara(max_sayfa=1):
                 cards = soup.select('.product-card')
                 if not cards:
                     log.warning("[Trendyol] Hiç kart bulunamadı.")
-                    debug_snapshot(page, "Trendyol")
+                    debug_snapshot(page, f"Trendyol_{kategori}")
                 eklenen = 0
                 for card in cards:
                     try:
@@ -215,7 +221,7 @@ def trendyol_tara(max_sayfa=1):
                         brand_el = card.select_one('.product-brand')
                         name_el = card.select_one('.product-name')
                         title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
-                        if not urun_gecerli_mi(title):
+                        if not urun_gecerli_mi(title, kategori):
                             continue
 
                         price_box = card.select_one('.product-card-price')
@@ -234,7 +240,7 @@ def trendyol_tara(max_sayfa=1):
 
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
-                                "Platform": "Trendyol", "Kategori": "Bebek Bezi",
+                                "Platform": "Trendyol", "Kategori": kategori,
                                 "Ürün Adı": title, "Fiyat": temiz_fiyat,
                                 "Ürün Linki": urljoin("https://www.trendyol.com", href),
                                 "Resim": resim
@@ -252,9 +258,9 @@ def trendyol_tara(max_sayfa=1):
 # ==========================================
 # 3. N11 — HTTP'den Playwright'a geri döndürüldü
 # ==========================================
-def n11_tara(max_sayfa=1):
+def n11_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
     all_products = []
-    base_url = "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi"
+    base_url = url or "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -274,7 +280,7 @@ def n11_tara(max_sayfa=1):
                 cards = soup.select('.product-item')
                 if not cards:
                     log.warning("[N11] Hiç kart bulunamadı.")
-                    debug_snapshot(page, "N11")
+                    debug_snapshot(page, f"N11_{kategori}")
                 eklenen = 0
                 for card in cards:
                     try:
@@ -285,7 +291,7 @@ def n11_tara(max_sayfa=1):
                             continue
 
                         title = title_el.text.strip()
-                        if not urun_gecerli_mi(title):
+                        if not urun_gecerli_mi(title, kategori):
                             continue
 
                         # Güncel fiyat h3.price-currency içinde; .old-price üstü çizili eski fiyat.
@@ -299,7 +305,7 @@ def n11_tara(max_sayfa=1):
 
                         if len(title) > 10 and temiz_fiyat:
                             all_products.append({
-                                "Platform": "N11", "Kategori": "Bebek Bezi",
+                                "Platform": "N11", "Kategori": kategori,
                                 "Ürün Adı": title, "Fiyat": temiz_fiyat,
                                 "Ürün Linki": href, "Resim": resim
                             })
@@ -335,9 +341,9 @@ def _dengeli_json_cikar(metin, baslangic_idx):
     return None
 
 
-def hepsiburada_tara(max_sayfa=1):
+def hepsiburada_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
     all_products = []
-    base_url = "https://www.hepsiburada.com/bebek-bezleri-c-60001049"
+    base_url = url or "https://www.hepsiburada.com/bebek-bezleri-c-60001049"
     with sync_playwright() as p:
         # NÜKLEER SEÇENEK: headless=False. Datadome görünür açılan
         # tarayıcıları gerçek insan sanıp geçiriyor.
@@ -364,7 +370,7 @@ def hepsiburada_tara(max_sayfa=1):
 
                 if idx == -1:
                     log.warning("[Hepsiburada] Ürün JSON'u sayfada bulunamadı.")
-                    debug_snapshot(page, "Hepsiburada")
+                    debug_snapshot(page, f"Hepsiburada_{kategori}")
                 else:
                     json_start = idx + len("'STATE': ")
                     json_str = _dengeli_json_cikar(html, json_start)
@@ -374,7 +380,7 @@ def hepsiburada_tara(max_sayfa=1):
                     except Exception as e:
                         log.warning(f"[Hepsiburada] JSON parse hatası: {e}")
                         products = []
-                        debug_snapshot(page, "Hepsiburada")
+                        debug_snapshot(page, f"Hepsiburada_{kategori}")
 
                     for product in products:
                         try:
@@ -383,7 +389,7 @@ def hepsiburada_tara(max_sayfa=1):
                                 continue
                             variant = variants[0]
                             title = variant.get("name", "")
-                            if not title or not urun_gecerli_mi(title):
+                            if not title or not urun_gecerli_mi(title, kategori):
                                 continue
 
                             listing = variant.get("listing") or {}
@@ -409,7 +415,7 @@ def hepsiburada_tara(max_sayfa=1):
 
                             if len(title) > 5:
                                 all_products.append({
-                                    "Platform": "Hepsiburada", "Kategori": "Bebek Bezi",
+                                    "Platform": "Hepsiburada", "Kategori": kategori,
                                     "Ürün Adı": title, "Fiyat": temiz_fiyat,
                                     "Ürün Linki": href, "Resim": resim
                                 })
@@ -418,7 +424,7 @@ def hepsiburada_tara(max_sayfa=1):
                             continue
 
                     if eklenen == 0:
-                        debug_snapshot(page, "Hepsiburada")
+                        debug_snapshot(page, f"Hepsiburada_{kategori}")
 
                 print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except Exception as e:
@@ -429,9 +435,9 @@ def hepsiburada_tara(max_sayfa=1):
 # ==========================================
 # 5. EBEBEK — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
 # ==========================================
-def ebebek_tara(max_sayfa=1):
+def ebebek_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
     all_products = []
-    base_url = "https://www.e-bebek.com/bebek-bezleri-c10111"
+    base_url = url or "https://www.e-bebek.com/bebek-bezleri-c10111"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -451,7 +457,7 @@ def ebebek_tara(max_sayfa=1):
                 cards = soup.select('div.product-item')
                 if not cards:
                     log.warning("[eBebek] Hiç kart bulunamadı.")
-                    debug_snapshot(page, "eBebek")
+                    debug_snapshot(page, f"eBebek_{kategori}")
                 eklenen = 0
                 for card in cards:
                     try:
@@ -461,7 +467,7 @@ def ebebek_tara(max_sayfa=1):
                         if not a or not h2 or not price_box:
                             continue
                         title = h2.get_text(' ', strip=True)
-                        if not urun_gecerli_mi(title):
+                        if not urun_gecerli_mi(title, kategori):
                             continue
                         # NOT: eBebek'te 3 farklı fiyat katmanı olabilir:
                         # 1) .cart-price .price -> "Sepette" fiyatı (varsa en düşük, gerçek satış fiyatı)
@@ -478,7 +484,7 @@ def ebebek_tara(max_sayfa=1):
                         href = urljoin("https://www.e-bebek.com", a.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
-                                "Platform": "eBebek", "Kategori": "Bebek Bezi",
+                                "Platform": "eBebek", "Kategori": kategori,
                                 "Ürün Adı": title, "Fiyat": temiz_fiyat,
                                 "Ürün Linki": href, "Resim": resim
                             })
@@ -486,9 +492,9 @@ def ebebek_tara(max_sayfa=1):
                     except Exception:
                         continue
                 if eklenen == 0:
-                    debug_snapshot(page, "eBebek")
+                    debug_snapshot(page, f"eBebek_{kategori}")
                 else:
-                    debug_snapshot(page, "eBebek_basarili")
+                    debug_snapshot(page, f"eBebek_basarili_{kategori}")
                 print(f"[eBebek] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except Exception as e:
                 log.warning(f"[eBebek] Sayfa hatası: {e}")
@@ -499,9 +505,9 @@ def ebebek_tara(max_sayfa=1):
 # ==========================================
 # 6. PAZARAMA — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
 # ==========================================
-def pazarama_tara(max_sayfa=1):
+def pazarama_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
     all_products = []
-    base_url = "https://www.pazarama.com/bebek-bezi-k-K01057"
+    base_url = url or "https://www.pazarama.com/bebek-bezi-k-K01057"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -521,7 +527,7 @@ def pazarama_tara(max_sayfa=1):
                 cards = soup.select('div.product-card')
                 if not cards:
                     log.warning("[Pazarama] Hiç kart bulunamadı.")
-                    debug_snapshot(page, "Pazarama")
+                    debug_snapshot(page, f"Pazarama_{kategori}")
                 eklenen = 0
                 for card in cards:
                     try:
@@ -531,7 +537,7 @@ def pazarama_tara(max_sayfa=1):
                         if not h2 or not price_box or not a:
                             continue
                         title = h2.get_text(strip=True)
-                        if not urun_gecerli_mi(title):
+                        if not urun_gecerli_mi(title, kategori):
                             continue
                         # "Sepette" fiyatı varsa gerçek satış fiyatı odur;
                         # yoksa üstteki <p> etiketindeki fiyatı kullan.
@@ -547,7 +553,7 @@ def pazarama_tara(max_sayfa=1):
                         href = urljoin("https://www.pazarama.com", a.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
-                                "Platform": "Pazarama", "Kategori": "Bebek Bezi",
+                                "Platform": "Pazarama", "Kategori": kategori,
                                 "Ürün Adı": title, "Fiyat": temiz_fiyat,
                                 "Ürün Linki": href, "Resim": resim
                             })
@@ -555,7 +561,7 @@ def pazarama_tara(max_sayfa=1):
                     except Exception:
                         continue
                 if eklenen == 0:
-                    debug_snapshot(page, "Pazarama")
+                    debug_snapshot(page, f"Pazarama_{kategori}")
                 print(f"[Pazarama] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except Exception as e:
                 log.warning(f"[Pazarama] Sayfa hatası: {e}")
@@ -568,9 +574,9 @@ def pazarama_tara(max_sayfa=1):
 # NOT: idefix esasen kitap/kırtasiye odaklı; bebek bezi stoku çok sınırlı
 # veya hiç olmayabilir. 0 ürün gelmesi burada selector hatası olmayabilir.
 # ==========================================
-def idefix_tara(max_sayfa=1):
+def idefix_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
     all_products = []
-    base_url = "https://www.idefix.com/bebek-bezleri-c-880181288"
+    base_url = url or "https://www.idefix.com/bebek-bezleri-c-880181288"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -594,7 +600,7 @@ def idefix_tara(max_sayfa=1):
                 titles = soup.select('h3.line-clamp-2')
                 if not titles:
                     log.warning("[idefix] Hiç kart bulunamadı.")
-                    debug_snapshot(page, "idefix")
+                    debug_snapshot(page, f"idefix_{kategori}")
                 eklenen = 0
                 for title_el in titles:
                     try:
@@ -609,7 +615,7 @@ def idefix_tara(max_sayfa=1):
                         if not a or not price_span:
                             continue
                         title = title_el.get_text(' ', strip=True)
-                        if not urun_gecerli_mi(title):
+                        if not urun_gecerli_mi(title, kategori):
                             continue
                         # price_span sadece kuruş kısmını içerebilir (örn. "00"),
                         # tam fiyat parent'ında ("819,00TL" gibi) birlikte duruyor.
@@ -619,7 +625,7 @@ def idefix_tara(max_sayfa=1):
                         href = urljoin("https://www.idefix.com", a.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
-                                "Platform": "idefix", "Kategori": "Bebek Bezi",
+                                "Platform": "idefix", "Kategori": kategori,
                                 "Ürün Adı": title, "Fiyat": temiz_fiyat,
                                 "Ürün Linki": href, "Resim": resim
                             })
@@ -636,9 +642,9 @@ def idefix_tara(max_sayfa=1):
 # ==========================================
 # 8. PTTAVM — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
 # ==========================================
-def pttavm_tara(max_sayfa=1):
+def pttavm_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
     all_products = []
-    base_url = "https://www.pttavm.com/arama?q=bebek+bezi"
+    base_url = url or "https://www.pttavm.com/arama?q=bebek+bezi"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -661,7 +667,7 @@ def pttavm_tara(max_sayfa=1):
                 cards = soup.select('article.article__i36EQ')
                 if not cards:
                     log.warning("[PTTAVM] Hiç kart bulunamadı.")
-                    debug_snapshot(page, "PTTAVM")
+                    debug_snapshot(page, f"PTTAVM_{kategori}")
                 eklenen = 0
                 for card in cards:
                     try:
@@ -670,7 +676,7 @@ def pttavm_tara(max_sayfa=1):
                         if not a or not title_el:
                             continue
                         title = title_el.get_text(strip=True)
-                        if not urun_gecerli_mi(title):
+                        if not urun_gecerli_mi(title, kategori):
                             continue
                         # İndirimli üründe gerçek fiyat specialPriceValue içinde,
                         # değilse priceRow'un tamamı tek fiyattır.
@@ -687,7 +693,7 @@ def pttavm_tara(max_sayfa=1):
                         href = urljoin("https://www.pttavm.com", a.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
-                                "Platform": "PTTAVM", "Kategori": "Bebek Bezi",
+                                "Platform": "PTTAVM", "Kategori": kategori,
                                 "Ürün Adı": title, "Fiyat": temiz_fiyat,
                                 "Ürün Linki": href, "Resim": resim
                             })
@@ -730,18 +736,65 @@ def save_to_db(all_products):
         print(f"❌ Veritabanı bağlantı hatası: {e}")
 
 
+# ==========================================
+# KATEGORİ TANIMLARI
+# Yeni bir kategori eklemek için buraya bir satır eklemek yeterli.
+# url=None olan siteler için henüz doğrulanmış bir kategori sayfası
+# bulunamadı — o kombinasyon otomatik atlanır, hata vermez.
+# ==========================================
+KATEGORILER = {
+    "Bebek Bezi": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+bezi&i=baby&ref=nb_sb_noss_2",
+        "trendyol": "https://www.trendyol.com/bebek-bezi-x-c1363",
+        "n11": "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-bezleri-c-60001049",
+        "ebebek": "https://www.e-bebek.com/bebek-bezleri-c10111",
+        "pazarama": "https://www.pazarama.com/bebek-bezi-k-K01057",
+        "idefix": "https://www.idefix.com/bebek-bezleri-c-880181288",
+        "pttavm": "https://www.pttavm.com/arama?q=bebek+bezi",
+    },
+    "Islak Mendil": {
+        # Trendyol, N11, eBebek: web aramasıyla dogrulanmış gerçek kategori URL'leri.
+        "amazon": "https://www.amazon.com.tr/s?k=islak+mendil&i=baby&ref=nb_sb_noss_2",
+        "trendyol": "https://www.trendyol.com/islak-mendil-x-c101411",
+        "n11": "https://www.n11.com/bebek-bezi-ve-islak-mendil/islak-mendil-havlu",
+        "hepsiburada": None,  # Akamai bot engeli nedeniyle kalıcı devre dışı (bkz. önceki tarama)
+        "ebebek": "https://www.e-bebek.com/islak-mendil-c10115",
+        "pazarama": None,  # TODO: gerçek kategori URL'si doğrulanmadı
+        "idefix": None,    # TODO: gerçek kategori URL'si doğrulanmadı
+        "pttavm": "https://www.pttavm.com/arama?q=islak+mendil",  # arama tabanlı, muhtemelen çalışır
+    },
+    # "Biberon": {...},        # sırada — URL toplama gerekiyor
+    # "Bebek Maması": {...},   # sırada — URL toplama gerekiyor
+    # "Emzik": {...},          # sırada — URL toplama gerekiyor
+}
+
+SITE_FONKSIYONLARI = {
+    "amazon": amazon_tara,
+    "trendyol": trendyol_tara,
+    "n11": n11_tara,
+    "hepsiburada": hepsiburada_tara,
+    "ebebek": ebebek_tara,
+    "pazarama": pazarama_tara,
+    "idefix": idefix_tara,
+    "pttavm": pttavm_tara,
+}
+
 if __name__ == "__main__":
     print("🚀 Bebiio Kusursuz Fiyat Motoru Başlatıldı!\n")
     try:
         toplam_urunler = []
-        toplam_urunler.extend(amazon_tara(1))
-        toplam_urunler.extend(trendyol_tara(1))
-        toplam_urunler.extend(n11_tara(1))
-        toplam_urunler.extend(hepsiburada_tara(1))
-        toplam_urunler.extend(ebebek_tara(1))
-        toplam_urunler.extend(pazarama_tara(1))
-        toplam_urunler.extend(idefix_tara(1))
-        toplam_urunler.extend(pttavm_tara(1))
+        for kategori_adi, site_urlleri in KATEGORILER.items():
+            print(f"\n{'='*50}\n📂 KATEGORİ: {kategori_adi}\n{'='*50}")
+            for site_adi, url in site_urlleri.items():
+                if url is None:
+                    print(f"⏭️  {site_adi}: '{kategori_adi}' için doğrulanmış URL yok, atlanıyor.")
+                    continue
+                fonksiyon = SITE_FONKSIYONLARI[site_adi]
+                try:
+                    toplam_urunler.extend(fonksiyon(1, url=url, kategori=kategori_adi))
+                except Exception as e:
+                    print(f"❌ {site_adi} / {kategori_adi} taramasında hata: {e}")
 
         print(f"\n🎉 Tarama tamamlandı! Toplam {len(toplam_urunler)} ürün yakalandı. DB'ye yazılıyor...")
         save_to_db(toplam_urunler)

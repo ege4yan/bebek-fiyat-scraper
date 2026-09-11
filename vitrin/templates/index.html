@@ -195,6 +195,8 @@
 
         <div id="mantikliSecimAlani" class="hidden mb-6 md:mb-8"></div>
 
+        <div id="kategoriSekmeleri" class="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1"></div>
+
         <div class="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
             <button data-filtre="tumu" onclick="filtreUygula('tumu')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors">Tümü</button>
             <button data-filtre="500altı" onclick="filtreUygula('500altı')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors">💰 500 TL Altı</button>
@@ -364,6 +366,7 @@
         let listem = JSON.parse(localStorage.getItem('bebiio_liste') || '[]');
         let karsilastirmaListesi = [];
         let aktifFiltre = 'tumu';
+        let aktifKategori = 'Bebek Bezi';
         let sonGoruntulenenler = JSON.parse(localStorage.getItem('bebiio_son_goruntulenenler') || '[]');
 
         function fiyatiSayiyaCevir(fiyatMetni) {
@@ -382,7 +385,7 @@
             return simdi.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
         }
 
-       function urunKimligiCikar(baslik) {
+       function urunKimligiCikar(baslik, kategori = "Bebek Bezi") {
             if (!baslik) baslik = "Bilinmeyen Ürün"; 
             let k = baslik.toLowerCase();
 
@@ -404,22 +407,35 @@
             }
             let adet = adetMatch ? parseInt(adetMatch[1]) : '?';
             
-            let tur = 'Standart Bez';
-            if (k.includes('külot')) tur = 'Külot Bez';
-            if (k.includes('torba')) tur = 'İdrar Torbalı Bez';
+            // "tur" (Standart Bez/Külot Bez) sadece Bebek Bezi kategorisinde anlamlı.
+            // Diğer kategorilerde (ıslak mendil, biberon vb.) bu etiketi eklemiyoruz.
+            let tur = '';
+            if (kategori === 'Bebek Bezi') {
+                tur = 'Standart Bez';
+                if (k.includes('külot')) tur = 'Külot Bez';
+                if (k.includes('torba')) tur = 'İdrar Torbalı Bez';
+            }
+
+            let isimParcalari = [marka.charAt(0).toUpperCase() + marka.slice(1)];
+            if (tur) isimParcalari.push(tur);
+            if (numara !== '?') isimParcalari.push('- ' + numara + ' Numara');
+            let grupIsmi = isimParcalari.join(' ').trim();
+            if (adet !== '?') grupIsmi += ` (${adet} Adet)`;
 
             return {
-                grupKodu: `${marka}-${tur}-${numara}-${adet}`,
+                // kategori grupKodu'na dahil: farklı kategorilerdeki ürünler asla ayni gruba karismaz
+                grupKodu: `${kategori}-${marka}-${tur}-${numara}-${adet}`,
                 marka: marka.toUpperCase(),
                 adet: adet,
                 numara: numara,
-                grupIsmi: `${marka.charAt(0).toUpperCase() + marka.slice(1)} ${tur} ${numara !== '?' ? '- ' + numara + ' Numara' : ''} (${adet === '?' ? '' : adet + ' Adet'})`
+                kategori: kategori,
+                grupIsmi: grupIsmi
             };
         }
 
         async function urunleriCekVeGrupla() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/urunler?select=urun_adi,fiyat,platform,urun_linki,resim_url&limit=2000`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/urunler?select=urun_adi,fiyat,platform,urun_linki,resim_url,kategori&limit=3000`, {
                     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
                 });
                 
@@ -444,9 +460,10 @@
             hamUrunler.forEach(urun => {
                 if (!urun || !urun.urun_adi || !urun.fiyat) return; 
 
-                let kimlik = urunKimligiCikar(urun.urun_adi);
-                
-                if(kimlik.grupKodu.includes('?-?')) return; 
+                let kimlik = urunKimligiCikar(urun.urun_adi, urun.kategori || 'Bebek Bezi');
+                // NOT: Eskiden "hem beden hem adet bilinmiyorsa sil" filtresi vardı.
+                // Bu, bez için mantıklıydı ama biberon/mama/emzik gibi beden
+                // kavramı olmayan ürünlerde neredeyse her şeyi silerdi — kaldırıldı.
 
                 if(!gruplar[kimlik.grupKodu]) {
                     gruplar[kimlik.grupKodu] = {
@@ -456,6 +473,7 @@
                         marka: kimlik.marka,
                         adet: kimlik.adet, // birim fiyat hesaplamasi icin
                         numara: kimlik.numara, // beden/yas filtresi icin
+                        kategori: kimlik.kategori,
                         resim: urun.resim_url || "", // Veritabanından gelen resmi yakalıyoruz
                         saticilar: []
                     };
@@ -498,6 +516,7 @@
 
             let durumMetni = gercekMi ? `<div class="flex items-center gap-2"><div class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div><span class="text-green-700 hidden sm:inline">Canlı Veri:</span> <span class="text-gray-800">${gruplanmisUrunler.length} benzersiz ürün</span></div>` : `<span class="text-yellow-600">● Test Modu</span>`;
             document.getElementById('istatistikMetni').innerHTML = durumMetni;
+            kategoriSekmeleriDoldur();
             markaSecenekleriDoldur();
             mantikliSecimGoster();
             sonGoruntulenenlerGoster();
@@ -721,6 +740,10 @@
 
             let sonuc = gruplanmisUrunler.slice();
 
+            if (aktifKategori !== 'tumu') {
+                sonuc = sonuc.filter(g => g.kategori === aktifKategori);
+            }
+
             const kelime = document.getElementById('aramaInput').value.toLowerCase().trim();
             if (kelime) {
                 sonuc = sonuc.filter(g => g.orijinalIsim.toLowerCase().includes(kelime) || g.marka.toLowerCase().includes(kelime));
@@ -758,10 +781,38 @@
             ekranaBas(sonuc);
         }
 
+        function kategoriSekmeleriDoldur() {
+            const alan = document.getElementById('kategoriSekmeleri');
+            const kategoriler = [...new Set(gruplanmisUrunler.map(g => g.kategori))];
+
+            // Sadece 1 kategori varsa sekmeleri hic gosterme (gereksiz kalabalik olmasin)
+            if (kategoriler.length <= 1) {
+                alan.innerHTML = '';
+                aktifKategori = kategoriler[0] || 'tumu';
+                return;
+            }
+
+            if (!kategoriler.includes(aktifKategori)) aktifKategori = 'tumu';
+
+            let html = `<button onclick="kategoriSec('tumu')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors ${aktifKategori === 'tumu' ? 'aktif' : ''}">Tüm Ürünler</button>`;
+            kategoriler.forEach(k => {
+                html += `<button onclick="kategoriSec('${k}')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors ${aktifKategori === k ? 'aktif' : ''}">${k}</button>`;
+            });
+            alan.innerHTML = html;
+        }
+
+        function kategoriSec(kategori) {
+            aktifKategori = kategori;
+            kategoriSekmeleriDoldur();
+            markaSecenekleriDoldur();
+            filtreUygula(aktifFiltre);
+        }
+
         function markaSecenekleriDoldur() {
             const markaEl = document.getElementById('markaFiltre');
             const mevcutSecim = markaEl.value;
-            const markalar = [...new Set(gruplanmisUrunler.map(g => g.marka))].sort();
+            const kaynak = aktifKategori === 'tumu' ? gruplanmisUrunler : gruplanmisUrunler.filter(g => g.kategori === aktifKategori);
+            const markalar = [...new Set(kaynak.map(g => g.marka))].sort();
             markaEl.innerHTML = '<option value="tumu">Tüm Markalar</option>' +
                 markalar.map(m => `<option value="${m}">${m.charAt(0) + m.slice(1).toLowerCase()}</option>`).join('');
             if (markalar.includes(mevcutSecim)) markaEl.value = mevcutSecim;
