@@ -427,6 +427,8 @@ def ebebek_tara(max_sayfa=1):
                             eklenen += 1
                     except Exception:
                         continue
+                if eklenen == 0:
+                    debug_snapshot(page, "eBebek")
                 print(f"[eBebek] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except Exception as e:
                 log.warning(f"[eBebek] Sayfa hatası: {e}")
@@ -483,6 +485,8 @@ def pazarama_tara(max_sayfa=1):
                             eklenen += 1
                     except Exception:
                         continue
+                if eklenen == 0:
+                    debug_snapshot(page, "Pazarama")
                 print(f"[Pazarama] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except Exception as e:
                 log.warning(f"[Pazarama] Sayfa hatası: {e}")
