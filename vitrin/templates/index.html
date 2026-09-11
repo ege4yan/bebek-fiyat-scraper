@@ -970,6 +970,43 @@
             modal.classList.add('flex');
         }
 
+        // ===================== SON GÖRÜNTÜLENENLER =====================
+        function sonGoruntulenenEkle(grupKodu) {
+            sonGoruntulenenler = sonGoruntulenenler.filter(k => k !== grupKodu);
+            sonGoruntulenenler.unshift(grupKodu);
+            sonGoruntulenenler = sonGoruntulenenler.slice(0, 10);
+            localStorage.setItem('bebiio_son_goruntulenenler', JSON.stringify(sonGoruntulenenler));
+        }
+
+        function sonGoruntulenenlerGoster() {
+            const alan = document.getElementById('sonGoruntulenenlerAlani');
+            const urunler = sonGoruntulenenler.map(k => gruplanmisUrunler.find(g => g.grupKodu === k)).filter(Boolean);
+
+            if (urunler.length === 0) {
+                alan.classList.add('hidden');
+                alan.innerHTML = '';
+                return;
+            }
+
+            let kartlar = '';
+            urunler.forEach(g => {
+                const resimHTML = g.resim
+                    ? `<img src="${g.resim}" loading="lazy" decoding="async" class="w-full h-full object-contain mix-blend-multiply">`
+                    : `<div class="w-full h-full"></div>`;
+                kartlar += `
+                    <div onclick="detayAc('${g.grupKodu}')" class="shrink-0 w-32 bg-white rounded-2xl border border-gray-100 p-3 cursor-pointer hover:border-brand-purple/40 transition-colors">
+                        <div class="w-full h-16 flex items-center justify-center mb-2">${resimHTML}</div>
+                        <div class="text-[11px] font-bold text-gray-700 line-clamp-2 leading-tight mb-1">${g.grupIsmi}</div>
+                        <div class="text-xs font-black text-brand-green">${formatFiyat(g.enUcuzFiyat)}</div>
+                    </div>`;
+            });
+
+            alan.innerHTML = `
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3 px-1">Son baktıkların</div>
+                <div class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">${kartlar}</div>`;
+            alan.classList.remove('hidden');
+        }
+
         // ===================== EN MANTIKLI SEÇİM (ANA SAYFA) =====================
         function mantikliSecimGoster() {
             const adaylar = gruplanmisUrunler.filter(g => birimFiyatHesapla(g) !== null);
