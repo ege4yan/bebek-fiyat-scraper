@@ -1,6 +1,7 @@
 ﻿import os
 import re
 import time
+import json
 import logging
 from urllib.parse import urljoin
 
@@ -314,27 +315,40 @@ def n11_tara(max_sayfa=1):
 
 # ==========================================
 # 4. HEPSİBURADA (Görünür Tarayıcı - Anti-Datadome)
+# GÜNCEL YÖNTEM: Sayfanın <script> içine gömdüğü tam ürün JSON'unu
+# ('STATE': {"data":{"products":[...]}}) doğrudan ayrıştırıyoruz.
+# Bu, DOM/CSS selector kırılganlığından tamamen bağımsız ve çok daha
+# güvenilir — gerçek "Sepete özel" indirimli fiyatı da net veriyor.
 # ==========================================
+def _dengeli_json_cikar(metin, baslangic_idx):
+    """baslangic_idx'teki '{' karakterinden başlayıp, parantez dengesini
+    takip ederek JSON nesnesinin tamamını (kapanış '}' dahil) döndürür."""
+    derinlik = 0
+    for i in range(baslangic_idx, len(metin)):
+        c = metin[i]
+        if c == '{':
+            derinlik += 1
+        elif c == '}':
+            derinlik -= 1
+            if derinlik == 0:
+                return metin[baslangic_idx:i + 1]
+    return None
+
+
 def hepsiburada_tara(max_sayfa=1):
     all_products = []
     base_url = "https://www.hepsiburada.com/bebek-bezleri-c-60001049"
     with sync_playwright() as p:
-        # NÜKLEER SEÇENEK: headless=False yaptık. Ekranda tarayıcı açılacak!
-        # Datadome görünür açılan tarayıcıları gerçek insan sanıp geçirir.
+        # NÜKLEER SEÇENEK: headless=False. Datadome görünür açılan
+        # tarayıcıları gerçek insan sanıp geçiriyor.
         browser = p.chromium.launch(
-            headless=False, 
-            slow_mo=50, 
+            headless=False,
+            slow_mo=50,
             args=['--disable-blink-features=AutomationControlled', '--start-maximized']
         )
-        
-        # no_viewport=True ile senin bilgisayarının gerçek ekran çözünürlüğünü kullanıyoruz
-        context = browser.new_context(
-            no_viewport=True, 
-            user_agent=UA, 
-            locale="tr-TR"
-        )
+        context = browser.new_context(no_viewport=True, user_agent=UA, locale="tr-TR")
         page = yeni_sayfa_olustur(context)
-        
+
         for sayfa_no in range(1, max_sayfa + 1):
             url = f"{base_url}?sayfa={sayfa_no}" if sayfa_no > 1 else base_url
             print(f"\n[Hepsiburada] Sayfa {sayfa_no} taranıyor (Görünür Tarayıcı ile)...")
@@ -343,67 +357,69 @@ def hepsiburada_tara(max_sayfa=1):
                 time.sleep(5)
                 scroll_page(page)
 
-                extracted_data = page.evaluate('''() => {
-                    let items = [];
-                    document.querySelectorAll("li[data-index], li[class*='productListContent'], ul > li").forEach(card => {
-                        let a_tag = card.querySelector("a");
-                        if (!a_tag) return;
-                        
-                        let title_tag = card.querySelector("[data-test-id*='title']") || card.querySelector("h3");
-                        if (!title_tag) return;
-                        
-                        let price_tag = card.querySelector("[data-test-id='price-current-price']") || 
-                                        card.querySelector("[data-test-id='product-price']") || 
-                                        card.querySelector("div[class*='price']");
-                        if (!price_tag) return;
-                        
-                        let img_tag = card.querySelector("img");
-                        
-                        items.push({
-                            title: title_tag.innerText.trim(),
-                            price: price_tag.innerText.trim(),
-                            link: a_tag.getAttribute("href"),
-                            image: img_tag ? (img_tag.getAttribute("src") || img_tag.getAttribute("data-src") || "") : ""
-                        });
-                    });
-                    return items;
-                }''')
-
+                html = page.content()
+                marker = "'STATE': {\"data\":{\"products\":"
+                idx = html.find(marker)
                 eklenen = 0
-                for data in extracted_data:
-                    try:
-                        title = data.get("title", "")
-                        if not urun_gecerli_mi(title): continue
-                        
-                        raw_price = data.get("price", "")
-                        href = data.get("link", "")
-                        resim = data.get("image", "")
-                        
-                        if not href.startswith('http'): href = urljoin("https://www.hepsiburada.com", href)
-                        if resim.startswith("//"): resim = "https:" + resim
-                        elif resim.startswith("/"): resim = urljoin("https://www.hepsiburada.com", resim)
-                        
-                        temiz_fiyat = fiyati_temizle(raw_price)
-                        
-                        if len(title) > 5 and temiz_fiyat:
-                            all_products.append({
-                                "Platform": "Hepsiburada", "Kategori": "Bebek Bezi",
-                                "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": href,
-                                "Resim": resim
-                            })
-                            eklenen += 1
-                    except Exception:
-                        continue
-                        
-                if eklenen == 0:
-                    log.warning("[Hepsiburada] Hiç kart bulunamadı.")
+
+                if idx == -1:
+                    log.warning("[Hepsiburada] Ürün JSON'u sayfada bulunamadı.")
                     debug_snapshot(page, "Hepsiburada")
                 else:
-                    # Artık başarılı çalıştığı için, fiyatların (özellikle
-                    # "Sepete özel" indirimli fiyatın) doğru seçilip
-                    # seçilmediğini netleştirmek için gerçek HTML'i de kaydediyoruz.
-                    debug_snapshot(page, "Hepsiburada_basarili")
-                    
+                    json_start = idx + len("'STATE': ")
+                    json_str = _dengeli_json_cikar(html, json_start)
+                    try:
+                        state = json.loads(json_str)
+                        products = state.get("data", {}).get("products", [])
+                    except Exception as e:
+                        log.warning(f"[Hepsiburada] JSON parse hatası: {e}")
+                        products = []
+                        debug_snapshot(page, "Hepsiburada")
+
+                    for product in products:
+                        try:
+                            variants = product.get("variantList") or []
+                            if not variants:
+                                continue
+                            variant = variants[0]
+                            title = variant.get("name", "")
+                            if not title or not urun_gecerli_mi(title):
+                                continue
+
+                            listing = variant.get("listing") or {}
+                            price_info = listing.get("priceInfo") or {}
+                            campaign = listing.get("campaignPriceInfo")
+                            # "Sepete özel" gibi bir kampanya fiyatı varsa (genelde
+                            # daha düşük ve gerçek satış fiyatı) onu, yoksa normal
+                            # listeleme fiyatını kullan.
+                            if campaign and campaign.get("discountedPrice"):
+                                fiyat_deger = campaign["discountedPrice"]
+                            else:
+                                fiyat_deger = price_info.get("price")
+                            if fiyat_deger is None:
+                                continue
+                            temiz_fiyat = f"{fiyat_deger:.2f}".replace('.', ',') + " TL"
+
+                            href = urljoin("https://www.hepsiburada.com", variant.get("url", ""))
+
+                            resim = ""
+                            images = product.get("images") or []
+                            if images:
+                                resim = images[0].get("link", "").replace("{size}", "240x240")
+
+                            if len(title) > 5:
+                                all_products.append({
+                                    "Platform": "Hepsiburada", "Kategori": "Bebek Bezi",
+                                    "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                    "Ürün Linki": href, "Resim": resim
+                                })
+                                eklenen += 1
+                        except Exception:
+                            continue
+
+                    if eklenen == 0:
+                        debug_snapshot(page, "Hepsiburada")
+
                 print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except Exception as e:
                 log.warning(f"[Hepsiburada] Sayfa hatası: {e}")
