@@ -394,30 +394,36 @@ def ebebek_tara(max_sayfa=1):
             try:
                 page.goto(url, timeout=60000)
                 try:
-                    page.wait_for_selector('.product-item, [class*="product-card"]', timeout=10000)
+                    page.wait_for_selector('div.product-item', timeout=10000)
                 except Exception:
                     log.info("[eBebek] Selector zaman aşımına uğradı.")
                 scroll_page(page)
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                cards = soup.select('.product-item') or soup.select('[class*="product-card"]')
+                # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 48/48)
+                cards = soup.select('div.product-item')
                 if not cards:
-                    log.warning("[eBebek] Hiç kart bulunamadı — selector doğrulanmalı.")
+                    log.warning("[eBebek] Hiç kart bulunamadı.")
                     debug_snapshot(page, "eBebek")
                 eklenen = 0
                 for card in cards:
                     try:
-                        title_el = card.select_one('.product-name') or card.select_one('[class*="name"]')
-                        price_el = card.select_one('.product-price') or card.select_one('[class*="price"]')
-                        link_el = card.select_one('a[href]')
-                        if not title_el or not price_el or not link_el:
+                        a = card.select_one('a.product-item-anchor')
+                        h2 = card.select_one('h2.product-item__brand')
+                        price_box = card.select_one('div.price-box.price-box--list')
+                        if not a or not h2 or not price_box:
                             continue
-                        title = title_el.text.strip()
+                        title = h2.get_text(' ', strip=True)
                         if not urun_gecerli_mi(title):
                             continue
-                        temiz_fiyat = fiyati_temizle(price_el.text)
+                        # NOT: class ismi "old-price" ama indirimsiz üründe bu
+                        # aslında GÜNCEL fiyattır — sitede bu şekilde adlandırılmış.
+                        price_el = price_box.select_one('.old-price')
+                        if not price_el:
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.get_text(' ', strip=True))
                         img_el = card.select_one("img")
                         resim = resmi_temizle(img_el, "https://www.e-bebek.com")
-                        href = urljoin("https://www.e-bebek.com", link_el.get('href', ''))
+                        href = urljoin("https://www.e-bebek.com", a.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
                                 "Platform": "eBebek", "Kategori": "Bebek Bezi",
@@ -447,35 +453,44 @@ def pazarama_tara(max_sayfa=1):
         context = yeni_context(browser)
         page = yeni_sayfa_olustur(context)
         for sayfa_no in range(1, max_sayfa + 1):
-            url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
+            url = f"{base_url}?page={sayfa_no}" if sayfa_no > 1 else base_url
             print(f"\n[Pazarama] Sayfa {sayfa_no} taranıyor...")
             try:
                 page.goto(url, timeout=60000)
                 try:
-                    page.wait_for_selector('[class*="product-card"], [class*="ProductCard"]', timeout=10000)
+                    page.wait_for_selector('div.product-card', timeout=10000)
                 except Exception:
                     log.info("[Pazarama] Selector zaman aşımına uğradı.")
                 scroll_page(page)
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                cards = soup.select('[class*="product-card"]') or soup.select('[class*="ProductCard"]')
+                # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 60/60)
+                cards = soup.select('div.product-card')
                 if not cards:
-                    log.warning("[Pazarama] Hiç kart bulunamadı — selector doğrulanmalı.")
+                    log.warning("[Pazarama] Hiç kart bulunamadı.")
                     debug_snapshot(page, "Pazarama")
                 eklenen = 0
                 for card in cards:
                     try:
-                        title_el = card.select_one('[class*="name"]') or card.select_one('[class*="title"]')
-                        price_el = card.select_one('[class*="price"]')
-                        link_el = card.select_one('a[href]')
-                        if not title_el or not price_el or not link_el:
+                        h2 = card.select_one('h2')
+                        price_box = card.select_one('.product-card__price')
+                        a = card.select_one('a[href]')
+                        if not h2 or not price_box or not a:
                             continue
-                        title = title_el.text.strip()
+                        title = h2.get_text(strip=True)
                         if not urun_gecerli_mi(title):
                             continue
-                        temiz_fiyat = fiyati_temizle(price_el.text)
+                        # "Sepette" fiyatı varsa gerçek satış fiyatı odur;
+                        # yoksa üstteki <p> etiketindeki fiyatı kullan.
+                        sepette_label = price_box.find('span', string=lambda s: s and 'Sepette' in s)
+                        price_el = sepette_label.find_next_sibling('div') if sepette_label else None
+                        if not price_el:
+                            price_el = price_box.find('p')
+                        if not price_el:
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.get_text(strip=True))
                         img_el = card.select_one("img")
                         resim = resmi_temizle(img_el, "https://www.pazarama.com")
-                        href = urljoin("https://www.pazarama.com", link_el.get('href', ''))
+                        href = urljoin("https://www.pazarama.com", a.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
                                 "Platform": "Pazarama", "Kategori": "Bebek Bezi",
@@ -507,35 +522,47 @@ def idefix_tara(max_sayfa=1):
         context = yeni_context(browser)
         page = yeni_sayfa_olustur(context)
         for sayfa_no in range(1, max_sayfa + 1):
-            url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
+            url = f"{base_url}?page={sayfa_no}" if sayfa_no > 1 else base_url
             print(f"\n[idefix] Sayfa {sayfa_no} taranıyor...")
             try:
                 page.goto(url, timeout=60000)
                 try:
-                    page.wait_for_selector('[class*="product"]', timeout=10000)
+                    page.wait_for_selector('h3.line-clamp-2', timeout=10000)
                 except Exception:
                     log.info("[idefix] Selector zaman aşımına uğradı.")
                 scroll_page(page)
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                cards = soup.select('[class*="product-item"]') or soup.select('[class*="product-card"]')
-                if not cards:
-                    log.warning("[idefix] Hiç kart bulunamadı — selector doğrulanmalı ya da kategori mevcut değil.")
+                # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 24/24)
+                # idefix tamamen dinamik/utility CSS class'ları kullanıyor,
+                # sabit bir "kart" class'ı yok. Bu yüzden başlangıç noktası
+                # olarak ürün başlığını (h3.line-clamp-2) alıp, ondan yukarı
+                # doğru gerçek kart kutusunu (group+cursor-pointer div) buluyoruz.
+                titles = soup.select('h3.line-clamp-2')
+                if not titles:
+                    log.warning("[idefix] Hiç kart bulunamadı.")
                     debug_snapshot(page, "idefix")
                 eklenen = 0
-                for card in cards:
+                for title_el in titles:
                     try:
-                        title_el = card.select_one('[class*="name"]') or card.select_one('[class*="title"]')
-                        price_el = card.select_one('[class*="price"]')
-                        link_el = card.select_one('a[href]')
-                        if not title_el or not price_el or not link_el:
+                        card = title_el.find_parent(
+                            lambda tag: tag.name == 'div' and tag.has_attr('class')
+                            and 'group' in tag['class'] and 'cursor-pointer' in tag['class']
+                        )
+                        if not card:
                             continue
-                        title = title_el.text.strip()
+                        a = card.find('a', href=True)
+                        price_span = card.select_one('span.lg\\:text-title-sm')
+                        if not a or not price_span:
+                            continue
+                        title = title_el.get_text(' ', strip=True)
                         if not urun_gecerli_mi(title):
                             continue
-                        temiz_fiyat = fiyati_temizle(price_el.text)
-                        img_el = card.select_one("img")
+                        # price_span sadece kuruş kısmını içerebilir (örn. "00"),
+                        # tam fiyat parent'ında ("819,00TL" gibi) birlikte duruyor.
+                        temiz_fiyat = fiyati_temizle(price_span.parent.get_text(strip=True))
+                        img_el = card.select_one('img[src^="https"]')
                         resim = resmi_temizle(img_el, "https://www.idefix.com")
-                        href = urljoin("https://www.idefix.com", link_el.get('href', ''))
+                        href = urljoin("https://www.idefix.com", a.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
                                 "Platform": "idefix", "Kategori": "Bebek Bezi",
@@ -568,30 +595,42 @@ def pttavm_tara(max_sayfa=1):
             try:
                 page.goto(url, timeout=60000)
                 try:
-                    page.wait_for_selector('[class*="product"]', timeout=10000)
+                    page.wait_for_selector('article.article__i36EQ', timeout=10000)
                 except Exception:
                     log.info("[PTTAVM] Selector zaman aşımına uğradı.")
                 scroll_page(page)
                 soup = BeautifulSoup(page.content(), 'html.parser')
-                cards = soup.select('[class*="product-item"]') or soup.select('[class*="product-box"]')
+                # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 48/48)
+                # NOT: Bu class isimleri CSS-Modules hash'i içeriyor
+                # (örn. __i36EQ) — PTTAVM yeni bir build yayınlarsa bu hash
+                # değişebilir ve selector'lar tekrar kırılabilir.
+                cards = soup.select('article.article__i36EQ')
                 if not cards:
-                    log.warning("[PTTAVM] Hiç kart bulunamadı — selector doğrulanmalı.")
+                    log.warning("[PTTAVM] Hiç kart bulunamadı.")
                     debug_snapshot(page, "PTTAVM")
                 eklenen = 0
                 for card in cards:
                     try:
-                        title_el = card.select_one('[class*="name"]') or card.select_one('[class*="title"]')
-                        price_el = card.select_one('[class*="price"]')
-                        link_el = card.select_one('a[href]')
-                        if not title_el or not price_el or not link_el:
+                        a = card.select_one('a.card__dfYph')
+                        title_el = card.select_one('h2.name__yWPWa')
+                        if not a or not title_el:
                             continue
-                        title = title_el.text.strip()
+                        title = title_el.get_text(strip=True)
                         if not urun_gecerli_mi(title):
                             continue
-                        temiz_fiyat = fiyati_temizle(price_el.text)
-                        img_el = card.select_one("img")
+                        # İndirimli üründe gerçek fiyat specialPriceValue içinde,
+                        # değilse priceRow'un tamamı tek fiyattır.
+                        price_el = card.select_one('div.specialPriceValue__HPhRC') \
+                            or card.select_one('div.priceRow__PGsNE')
+                        if not price_el:
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.get_text(' ', strip=True))
+                        # Rozet/badge resmiyle karışmasın diye ürün görselini
+                        # figure.imageWrapper içinden alıyoruz.
+                        fig = card.select_one('figure.imageWrapper__R7Rwz')
+                        img_el = fig.select_one('img') if fig else card.select_one('img')
                         resim = resmi_temizle(img_el, "https://www.pttavm.com")
-                        href = urljoin("https://www.pttavm.com", link_el.get('href', ''))
+                        href = urljoin("https://www.pttavm.com", a.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
                                 "Platform": "PTTAVM", "Kategori": "Bebek Bezi",
