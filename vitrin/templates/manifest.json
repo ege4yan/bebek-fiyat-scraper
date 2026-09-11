@@ -1,0 +1,13 @@
+{
+  "name": "Bebiio | Bebek Ürünlerinde Fiyat Karşılaştırma",
+  "short_name": "Bebiio",
+  "description": "Bebek bezi ve bebek ürünlerini Trendyol, N11, Amazon, eBebek ve daha fazlasında karşılaştır.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FAF7F1",
+  "theme_color": "#C97A2C",
+  "lang": "tr",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
