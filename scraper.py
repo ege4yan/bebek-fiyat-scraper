@@ -313,83 +313,102 @@ def n11_tara(max_sayfa=1):
 
 
 # ==========================================
-# 4. HEPSİBURADA — Playwright yerine sade HTTP isteği deneniyor
-# (CAPTCHA duvarı headless tarayıcı imzasına tepki veriyor gibi görünüyor,
-#  düz bir isteğe değil — bu yüzden Playwright'ı devre dışı bırakıp test ediyoruz)
+# 4. HEPSİBURADA (Görünür Tarayıcı - Anti-Datadome)
 # ==========================================
 def hepsiburada_tara(max_sayfa=1):
     all_products = []
     base_url = "https://www.hepsiburada.com/bebek-bezleri-c-60001049"
-    for sayfa_no in range(1, max_sayfa + 1):
-        url = f"{base_url}?sayfa={sayfa_no}" if sayfa_no > 1 else base_url
-        print(f"\n[Hepsiburada] Sayfa {sayfa_no} HTTP ile taranıyor...")
-        try:
-            response = requests.get(url, headers=HTTP_HEADERS, timeout=20)
-            if response.status_code != 200:
-                log.warning(f"[Hepsiburada] HTTP {response.status_code} döndü.")
-            soup = BeautifulSoup(response.text, 'html.parser')
-            cards = soup.select("li[class*='productListContent']") or soup.find_all("li", attrs={"data-index": True})
-            if not cards:
-                log.warning("[Hepsiburada] Hiç kart bulunamadı — HTML'i inceleyip selector netleştirmemiz gerekebilir.")
-                os.makedirs(DEBUG_DIR, exist_ok=True)
-                with open(f"{DEBUG_DIR}/hepsiburada_http.html", "w", encoding="utf-8") as f:
-                    f.write(response.text)
-                log.warning(f"[Hepsiburada] Ham HTML {DEBUG_DIR}/hepsiburada_http.html içine kaydedildi.")
+    with sync_playwright() as p:
+        # NÜKLEER SEÇENEK: headless=False yaptık. Ekranda tarayıcı açılacak!
+        # Datadome görünür açılan tarayıcıları gerçek insan sanıp geçirir.
+        browser = p.chromium.launch(
+            headless=False, 
+            slow_mo=50, 
+            args=['--disable-blink-features=AutomationControlled', '--start-maximized']
+        )
+        
+        # no_viewport=True ile senin bilgisayarının gerçek ekran çözünürlüğünü kullanıyoruz
+        context = browser.new_context(
+            no_viewport=True, 
+            user_agent=UA, 
+            locale="tr-TR"
+        )
+        page = yeni_sayfa_olustur(context)
+        
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?sayfa={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[Hepsiburada] Sayfa {sayfa_no} taranıyor (Görünür Tarayıcı ile)...")
+            try:
+                page.goto(url, timeout=60000, wait_until="domcontentloaded")
+                time.sleep(5)
+                scroll_page(page)
 
-            eklenen = 0
-            for card in cards:
-                try:
-                    link_el = card.find('a', href=True)
-                    if not link_el:
+                extracted_data = page.evaluate('''() => {
+                    let items = [];
+                    document.querySelectorAll("li[data-index], li[class*='productListContent'], ul > li").forEach(card => {
+                        let a_tag = card.querySelector("a");
+                        if (!a_tag) return;
+                        
+                        let title_tag = card.querySelector("[data-test-id*='title']") || card.querySelector("h3");
+                        if (!title_tag) return;
+                        
+                        let price_tag = card.querySelector("[data-test-id='price-current-price']") || 
+                                        card.querySelector("[data-test-id='product-price']") || 
+                                        card.querySelector("div[class*='price']");
+                        if (!price_tag) return;
+                        
+                        let img_tag = card.querySelector("img");
+                        
+                        items.push({
+                            title: title_tag.innerText.trim(),
+                            price: price_tag.innerText.trim(),
+                            link: a_tag.getAttribute("href"),
+                            image: img_tag ? (img_tag.getAttribute("src") || img_tag.getAttribute("data-src") || "") : ""
+                        });
+                    });
+                    return items;
+                }''')
+
+                eklenen = 0
+                for data in extracted_data:
+                    try:
+                        title = data.get("title", "")
+                        if not urun_gecerli_mi(title): continue
+                        
+                        raw_price = data.get("price", "")
+                        href = data.get("link", "")
+                        resim = data.get("image", "")
+                        
+                        if not href.startswith('http'): href = urljoin("https://www.hepsiburada.com", href)
+                        if resim.startswith("//"): resim = "https:" + resim
+                        elif resim.startswith("/"): resim = urljoin("https://www.hepsiburada.com", resim)
+                        
+                        temiz_fiyat = fiyati_temizle(raw_price)
+                        
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "Hepsiburada", "Kategori": "Bebek Bezi",
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat, "Ürün Linki": href,
+                                "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
                         continue
-                    href = link_el['href'] if link_el['href'].startswith('http') else urljoin("https://www.hepsiburada.com", link_el['href'])
-
-                    title_el = card.find('h3') or card.find(attrs={"data-test-id": re.compile(r'title', re.IGNORECASE)})
-                    title = title_el.text.strip() if title_el else ""
-                    if not title or not urun_gecerli_mi(title):
-                        continue
-
-                    # Sabit bir fiyat selector'ı yerine, karttaki tüm metni
-                    # tarayıp "X TL" kalıbına uyan sayıları çıkarıyoruz; en
-                    # yüksek fiyatın en az %40'ı büyüklüğündeki en düşük
-                    # değeri gerçek satış fiyatı olarak kabul ediyoruz
-                    # (böylece "X TL'den başlayan taksit" gibi küçük yan
-                    # metinler yanlışlıkla fiyat sanılmıyor).
-                    joined_text = " ".join(card.stripped_strings)
-                    joined_text = re.sub(r'(?<=\d)\s*,\s*(?=\d)', ',', joined_text)
-                    joined_text = re.sub(r'(?<=\d)\s*\.\s*(?=\d)', '.', joined_text)
-                    matches = re.findall(r'((?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d+)?)\s*(?:TL|₺)', joined_text, re.IGNORECASE)
-                    fiyat = ""
-                    if matches:
-                        float_prices = []
-                        for m in matches:
-                            try:
-                                float_prices.append((float(m.replace('.', '').replace(',', '.')), m))
-                            except Exception:
-                                pass
-                        if float_prices:
-                            max_val = max(float_prices, key=lambda x: x[0])[0]
-                            main_prices = [p for p in float_prices if p[0] > (max_val * 0.4)]
-                            if main_prices:
-                                fiyat = min(main_prices, key=lambda x: x[0])[1] + " TL"
-
-                    img_el = card.select_one("img")
-                    resim = resmi_temizle(img_el, "https://www.hepsiburada.com")
-
-                    if fiyat:
-                        all_products.append({
-                            "Platform": "Hepsiburada", "Kategori": "Bebek Bezi",
-                            "Ürün Adı": title, "Fiyat": fiyat, "Ürün Linki": href,
-                            "Resim": resim
-                        })
-                        eklenen += 1
-                except Exception:
-                    continue
-            print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
-        except Exception as e:
-            log.warning(f"[Hepsiburada] HTTP hatası: {e}")
+                        
+                if eklenen == 0:
+                    log.warning("[Hepsiburada] Hiç kart bulunamadı.")
+                    debug_snapshot(page, "Hepsiburada")
+                else:
+                    # Artık başarılı çalıştığı için, fiyatların (özellikle
+                    # "Sepete özel" indirimli fiyatın) doğru seçilip
+                    # seçilmediğini netleştirmek için gerçek HTML'i de kaydediyoruz.
+                    debug_snapshot(page, "Hepsiburada_basarili")
+                    
+                print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[Hepsiburada] Sayfa hatası: {e}")
+        browser.close()
     return all_products
-
 
 # ==========================================
 # 5. EBEBEK — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
