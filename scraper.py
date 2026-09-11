@@ -383,7 +383,7 @@ def hepsiburada_tara(max_sayfa=1):
 # ==========================================
 def ebebek_tara(max_sayfa=1):
     all_products = []
-    base_url = "https://www.ebebek.com/bebek-bezi"
+    base_url = "https://www.e-bebek.com/bebek-bezleri-c10111"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -416,8 +416,8 @@ def ebebek_tara(max_sayfa=1):
                             continue
                         temiz_fiyat = fiyati_temizle(price_el.text)
                         img_el = card.select_one("img")
-                        resim = resmi_temizle(img_el, "https://www.ebebek.com")
-                        href = urljoin("https://www.ebebek.com", link_el.get('href', ''))
+                        resim = resmi_temizle(img_el, "https://www.e-bebek.com")
+                        href = urljoin("https://www.e-bebek.com", link_el.get('href', ''))
                         if len(title) > 5 and temiz_fiyat:
                             all_products.append({
                                 "Platform": "eBebek", "Kategori": "Bebek Bezi",
@@ -439,7 +439,7 @@ def ebebek_tara(max_sayfa=1):
 # ==========================================
 def pazarama_tara(max_sayfa=1):
     all_products = []
-    base_url = "https://www.pazarama.com/arama?q=bebek%20bezi"
+    base_url = "https://www.pazarama.com/bebek-bezi-k-K01057"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
@@ -497,7 +497,7 @@ def pazarama_tara(max_sayfa=1):
 # ==========================================
 def idefix_tara(max_sayfa=1):
     all_products = []
-    base_url = "https://www.idefix.com/search?q=bebek+bezi"
+    base_url = "https://www.idefix.com/bebek-bezleri-c-880181288"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, slow_mo=50)
         context = yeni_context(browser)
