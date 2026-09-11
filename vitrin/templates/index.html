@@ -406,6 +406,14 @@
                 adetMatch = k.match(/(\d{1,4})\s*('l|li|lu|lü)/);
             }
             let adet = adetMatch ? parseInt(adetMatch[1]) : '?';
+
+            // NOT: "Selpak zeytinyağlı" ile "Selpak sade" gibi FARKLI ürünlerin
+            // yanlışlıkla aynı grupta (dolayısıyla aynı fiyat karşılaştırmasında)
+            // görünmesini engellemek için ürün çeşidini de gruplama anahtarına
+            // dahil ediyoruz. Özellikle ıslak mendil gibi kategorilerde önemli.
+            let varyantKelimeleri = ['zeytinyağlı', 'zeytin yağlı', 'aloe vera', 'hassas', 'parfümsüz',
+                'kokulu', 'losyonlu', 'organik', 'doğal', 'antibakteriyel', 'sade', 'klasik'];
+            let varyant = varyantKelimeleri.find(v => k.includes(v)) || '';
             
             // "tur" (Standart Bez/Külot Bez) sadece Bebek Bezi kategorisinde anlamlı.
             // Diğer kategorilerde (ıslak mendil, biberon vb.) bu etiketi eklemiyoruz.
@@ -420,11 +428,12 @@
             if (tur) isimParcalari.push(tur);
             if (numara !== '?') isimParcalari.push('- ' + numara + ' Numara');
             let grupIsmi = isimParcalari.join(' ').trim();
-            if (adet !== '?') grupIsmi += ` (${adet} Adet)`;
+            if (varyant) grupIsmi += ` (${varyant.charAt(0).toUpperCase() + varyant.slice(1)})`;
+            if (adet !== '?') grupIsmi += ` - ${adet} Adet`;
 
             return {
                 // kategori grupKodu'na dahil: farklı kategorilerdeki ürünler asla ayni gruba karismaz
-                grupKodu: `${kategori}-${marka}-${tur}-${numara}-${adet}`,
+                grupKodu: `${kategori}-${marka}-${tur}-${varyant}-${numara}-${adet}`,
                 marka: marka.toUpperCase(),
                 adet: adet,
                 numara: numara,
@@ -1068,7 +1077,9 @@
             adaylar.forEach(g => { if (birimFiyatHesapla(g) < birimFiyatHesapla(en)) en = g; });
 
             const bf = birimFiyatHesapla(en);
-            const resimHTML = en.resim ? `<img src="${en.resim}" loading="lazy" decoding="async" class="w-20 h-20 md:w-24 md:h-24 object-contain mix-blend-multiply">` : '';
+            const resimHTML = en.resim
+                ? `<img src="${en.resim}" loading="lazy" decoding="async" class="w-20 h-20 md:w-24 md:h-24 object-contain mix-blend-multiply">`
+                : `<svg class="w-20 h-20 md:w-24 md:h-24 text-white/40 p-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>`;
 
             alan.innerHTML = `
                 <div class="bg-gradient-to-br from-brand-purple to-purple-700 rounded-3xl p-5 md:p-6 shadow-float flex flex-col sm:flex-row items-center gap-4 md:gap-6 cursor-pointer hover:opacity-95 transition-opacity" onclick="detayAc('${en.grupKodu}')">
