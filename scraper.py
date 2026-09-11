@@ -483,6 +483,8 @@ def ebebek_tara(max_sayfa=1):
                         continue
                 if eklenen == 0:
                     debug_snapshot(page, "eBebek")
+                else:
+                    debug_snapshot(page, "eBebek_basarili")
                 print(f"[eBebek] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
             except Exception as e:
                 log.warning(f"[eBebek] Sayfa hatası: {e}")
