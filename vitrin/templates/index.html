@@ -79,6 +79,9 @@
         .filtre-chip { background: white; color: #84765B; border-color: #E4DBC9; }
         .filtre-chip:hover { border-color: #C97A2C; color: #C97A2C; }
         .filtre-chip.aktif { background: #C97A2C; color: white; border-color: #C97A2C; }
+        .kategori-chip { background: white; color: #4C4433; border-color: #E4DBC9; }
+        .kategori-chip:hover { border-color: #1B2430; color: #1B2430; }
+        .kategori-chip.aktif { background: #1B2430; color: white; border-color: #1B2430; }
         .kart-secili { outline: 3px solid #C97A2C; outline-offset: -1px; }
         .kalp-dolu { color: #E64980 !important; }
     </style>
@@ -816,6 +819,17 @@
             ekranaBas(sonuc);
         }
 
+        function bedenFiltreGorunurlugunuGuncelle() {
+            const bedenEl = document.getElementById('bedenFiltre');
+            if (!bedenEl) return;
+            if (aktifKategori === 'Bebek Bezi' || aktifKategori === 'tumu') {
+                bedenEl.classList.remove('hidden');
+            } else {
+                bedenEl.value = 'tumu'; // baska kategoriye gecince eski secimi sifirla
+                bedenEl.classList.add('hidden');
+            }
+        }
+
         function kategoriSekmeleriDoldur() {
             const alan = document.getElementById('kategoriSekmeleri');
             const kategoriler = [...new Set(gruplanmisUrunler.map(g => g.kategori))];
@@ -824,17 +838,19 @@
             if (kategoriler.length <= 1) {
                 alan.innerHTML = '';
                 aktifKategori = kategoriler[0] || 'tumu';
+                bedenFiltreGorunurlugunuGuncelle();
                 return;
             }
 
             if (!kategoriler.includes(aktifKategori)) aktifKategori = 'tumu';
 
-            let html = `<button onclick="kategoriSec('tumu')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors ${aktifKategori === 'tumu' ? 'aktif' : ''}">Tüm Ürünler (${gruplanmisUrunler.length})</button>`;
+            let html = `<button onclick="kategoriSec('tumu')" class="kategori-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors ${aktifKategori === 'tumu' ? 'aktif' : ''}">Tüm Ürünler (${gruplanmisUrunler.length})</button>`;
             kategoriler.forEach(k => {
                 const sayi = gruplanmisUrunler.filter(g => g.kategori === k).length;
-                html += `<button onclick="kategoriSec('${k}')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors ${aktifKategori === k ? 'aktif' : ''}">${k} (${sayi})</button>`;
+                html += `<button onclick="kategoriSec('${k}')" class="kategori-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors ${aktifKategori === k ? 'aktif' : ''}">${k} (${sayi})</button>`;
             });
             alan.innerHTML = html;
+            bedenFiltreGorunurlugunuGuncelle();
         }
 
         function kategoriSec(kategori) {
