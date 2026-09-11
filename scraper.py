@@ -758,10 +758,13 @@ KATEGORILER = {
         "amazon": "https://www.amazon.com.tr/s?k=islak+mendil&i=baby&ref=nb_sb_noss_2",
         "trendyol": "https://www.trendyol.com/islak-mendil-x-c101411",
         "n11": "https://www.n11.com/bebek-bezi-ve-islak-mendil/islak-mendil-havlu",
-        "hepsiburada": None,  # Akamai bot engeli nedeniyle kalıcı devre dışı (bkz. önceki tarama)
+        # Hepsiburada: URL kullanıcı tarafından doğrulandı ama site Akamai ile
+        # kalıcı olarak bloklu (bkz. önceki tarama) — bu yüzden None bırakıldı.
+        # Gerçek URL: https://www.hepsiburada.com/islak-mendiller-c-301175
+        "hepsiburada": None,
         "ebebek": "https://www.e-bebek.com/islak-mendil-c10115",
-        "pazarama": None,  # TODO: gerçek kategori URL'si doğrulanmadı
-        "idefix": None,    # TODO: gerçek kategori URL'si doğrulanmadı
+        "pazarama": "https://www.pazarama.com/islak-mendil-havlu-k-K01058",
+        "idefix": "https://www.idefix.com/bebek-islak-mendilleri-c-880155320",
         "pttavm": "https://www.pttavm.com/arama?q=islak+mendil",  # arama tabanlı, muhtemelen çalışır
     },
     # "Biberon": {...},        # sırada — URL toplama gerekiyor
