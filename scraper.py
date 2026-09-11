@@ -99,9 +99,9 @@ def urun_gecerli_mi(baslik):
     return not any(y in b for y in yasaklilar)
 
 
-def scroll_page(page):
-    for _ in range(6):
-        page.evaluate("window.scrollBy(0, 1000)")
+def scroll_page(page, adim=6):
+    for _ in range(adim):
+        page.evaluate("window.scrollBy(0, 1200)")
         time.sleep(1)
 
 
@@ -445,7 +445,7 @@ def ebebek_tara(max_sayfa=1):
                     page.wait_for_selector('div.product-item', timeout=10000)
                 except Exception:
                     log.info("[eBebek] Selector zaman aşımına uğradı.")
-                scroll_page(page)
+                scroll_page(page, adim=12)
                 soup = BeautifulSoup(page.content(), 'html.parser')
                 # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 48/48)
                 cards = soup.select('div.product-item')
@@ -463,9 +463,13 @@ def ebebek_tara(max_sayfa=1):
                         title = h2.get_text(' ', strip=True)
                         if not urun_gecerli_mi(title):
                             continue
-                        # NOT: class ismi "old-price" ama indirimsiz üründe bu
-                        # aslında GÜNCEL fiyattır — sitede bu şekilde adlandırılmış.
-                        price_el = price_box.select_one('.old-price')
+                        # NOT: eBebek'te 3 farklı fiyat katmanı olabilir:
+                        # 1) .cart-price .price -> "Sepette" fiyatı (varsa en düşük, gerçek satış fiyatı)
+                        # 2) .discounted-price strong -> siteye özel indirimli fiyat
+                        # 3) .old-price -> üstü çizili orijinal fiyat (indirim yoksa asıl fiyat budur)
+                        price_el = (price_box.select_one('.cart-price .price')
+                                    or price_box.select_one('.discounted-price strong')
+                                    or price_box.select_one('.old-price'))
                         if not price_el:
                             continue
                         temiz_fiyat = fiyati_temizle(price_el.get_text(' ', strip=True))
