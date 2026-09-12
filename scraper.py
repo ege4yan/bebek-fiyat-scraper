@@ -1,1298 +1,1125 @@
-﻿<!DOCTYPE html>
-<html lang="tr" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bebiio | En Uygun Fiyatı Bulan O</title>
-    <meta name="description" content="Bebek bezi ve bebek ürünlerinde Trendyol, N11, Amazon, eBebek, Pazarama, idefix ve PTTAVM fiyatlarını tek ekranda karşılaştır. En ucuzu, en mantıklısı Bebiio'da.">
-    <meta property="og:title" content="Bebiio | En Uygun Fiyatı Bulan O">
-    <meta property="og:description" content="Bebek ürünlerini tek ekranda karşılaştır, en uygun fiyatı bul.">
-    <meta property="og:type" content="website">
-    <meta name="theme-color" content="#1B2430">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="apple-touch-icon" href="icon.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://bbemkqegyvbktqjbjqrr.supabase.co">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Nunito', 'sans-serif'], display: ['Fraunces', 'serif'] },
-                    colors: {
-                        gray: {
-                            50: '#FAF7F1', 100: '#F1EBE0', 200: '#E4DBC9', 300: '#CDBFA5',
-                            400: '#A79879', 500: '#84765B', 600: '#655A44', 700: '#4C4433',
-                            800: '#332D22', 900: '#241F17'
-                        },
-                        brand: {
-                            purple: '#C97A2C',
-                            purpleHover: '#A8631F',
-                            light: '#FBEDD6',
-                            text: '#2B2620',
-                            green: '#5B7F62',
-                            greenLight: '#E9F0E7',
-                            surface: '#FAF7F1'
-                        }
-                    },
-                    boxShadow: {
-                        'soft': '0 20px 40px -15px rgba(0,0,0,0.05)',
-                        'float': '0 30px 60px -20px rgba(201, 122, 44, 0.22)'
-                    },
-                    animation: {
-                        'fade-in-up': 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'modal-in': 'modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                    },
-                    keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(100%)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        modalIn: {
-                            '0%': { opacity: '0', transform: 'scale(0.95) translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { background-color: #FAF7F1; color: #2B2620; -webkit-tap-highlight-color: transparent; }
-        .bg-pattern { background-image: radial-gradient(#C97A2C 0.5px, transparent 0.5px), radial-gradient(#C97A2C 0.5px, #FAF7F1 0.5px); background-size: 20px 20px; background-position: 0 0, 10px 10px; background-attachment: fixed; opacity: 0.04; }
-        .hero-gradient { background: radial-gradient(ellipse 80% 60% at 15% 20%, rgba(201,122,44,0.35) 0%, transparent 60%), linear-gradient(160deg, #1B2430 0%, #23303F 55%, #1B2430 100%); }
-        .hero-gradient h2, .hero-gradient p, .hero-gradient .text-gray-500 { color: #E7DFD0; }
-        .hero-gradient .text-gray-900 { color: #FDF7EC; }
-        .hover-lift { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        .hover-lift:hover { transform: translateY(-6px); box-shadow: 0 24px 48px -20px rgba(43, 38, 32, 0.18); }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #E4DBC9; border-radius: 10px; }
-        .filtre-chip { background: white; color: #84765B; border-color: #E4DBC9; }
-        .filtre-chip:hover { border-color: #C97A2C; color: #C97A2C; }
-        .filtre-chip.aktif { background: #C97A2C; color: white; border-color: #C97A2C; }
-        .kategori-chip { background: white; color: #4C4433; border-color: #E4DBC9; }
-        .kategori-chip:hover { border-color: #1B2430; color: #1B2430; }
-        .kategori-chip.aktif { background: #1B2430; color: white; border-color: #1B2430; }
-        .kart-secili { outline: 3px solid #C97A2C; outline-offset: -1px; }
-        .kalp-dolu { color: #E64980 !important; }
-    </style>
-</head>
-<body class="antialiased relative pb-20 md:pb-0" id="ana-sayfa">
-    
-    <div class="fixed inset-0 bg-pattern z-[-1]"></div>
-    <div id="toastContainer" class="fixed top-5 md:top-auto md:bottom-5 right-1/2 translate-x-1/2 md:translate-x-0 md:right-5 z-[60] flex flex-col gap-2 w-[90%] md:w-auto text-center"></div>
-
-    <div id="aramaOverlay" class="hidden fixed inset-0 z-[110] bg-gray-900/50 backdrop-blur-sm items-start justify-center pt-20 md:pt-28 px-4">
-        <div class="absolute inset-0" onclick="aramaKapat()"></div>
-        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-xl p-2 animate-modal-in">
-            <div class="flex items-center gap-3 px-3 py-1">
-                <svg class="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="aramaOverlayInput" placeholder="Hangi ürünü arıyorsun?" class="flex-1 py-4 text-lg font-bold focus:outline-none bg-transparent placeholder-gray-400">
-                <button onclick="aramaKapat()" class="w-9 h-9 shrink-0 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="hidden md:block bg-white/80 backdrop-blur-md py-4 px-6 shadow-sm sticky top-0 z-40 border-b border-gray-100">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="#ana-sayfa" class="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity">
-                <div class="relative w-9 h-9 flex items-center justify-center shrink-0">
-                    <div class="absolute inset-0 rounded-full bg-brand-purple/20 blur-md"></div>
-                    <svg class="relative w-8 h-8 text-brand-purple drop-shadow-[0_0_6px_rgba(201,122,44,0.5)]" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="8.5" fill="currentColor"></circle>
-                        <circle cx="15.6" cy="8.6" r="7.2" fill="#FAF7F1"></circle>
-                        <circle cx="18.5" cy="5.5" r="1.3" fill="currentColor"></circle>
-                    </svg>
-                </div>
-                <h1 class="font-display italic text-2xl font-semibold tracking-tight text-gray-900">Bebiio</h1>
-            </a>
-            
-            <div class="flex gap-8 text-gray-500 font-bold text-sm">
-                <a href="#ana-sayfa" class="text-brand-purple">Ana Sayfa</a>
-                <button onclick="kategoriMenuAc()" class="hover:text-brand-purple transition-colors">Kategoriler</button>
-                <button onclick="favorilerGoster()" class="hover:text-brand-purple transition-colors flex items-center gap-1.5">Favorilerim <span id="favSayacNav" class="hidden bg-brand-purple text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 items-center justify-center"></span></button>
-                <button onclick="listeGoster()" class="hover:text-brand-purple transition-colors flex items-center gap-1.5">Sepetim <span id="listeSayacNav" class="hidden bg-brand-purple text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 items-center justify-center"></span></button>
-            </div>
-            
-            <div class="flex gap-4 text-gray-400">
-                <button onclick="aramaAc()" class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-brand-light hover:text-brand-purple rounded-full transition-colors cursor-pointer">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </button>
-                <button onclick="bildirimGoster('Profil yakında! 👤')" class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-brand-light hover:text-brand-purple rounded-full transition-colors cursor-pointer">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <div class="bg-brand-light text-brand-purple text-center text-[11px] md:text-xs font-bold py-2 px-4">
-        🧪 Bebiio şu an beta sürümde — fiyat, ürün adı ve stok bilgilerinde hatalar olabilir, satın almadan önce mağazada teyit edin.
-    </div>
-
-    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-lg border-t border-gray-100 flex justify-around items-center py-3 z-40 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        <a href="#ana-sayfa" class="flex flex-col items-center text-brand-purple gap-1">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 101.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
-            <span class="text-[10px] font-bold">Keşfet</span>
-        </a>
-        <button onclick="aramaAc()" class="flex flex-col items-center text-gray-400 hover:text-brand-purple transition gap-1">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <span class="text-[10px] font-bold">Ara</span>
-        </button>
-        <button onclick="document.getElementById('karsilastirma-alani').scrollIntoView({ behavior: 'smooth' })" class="relative -top-5 bg-brand-purple text-white w-14 h-14 rounded-full flex items-center justify-center shadow-float border-4 border-white">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-        </button>
-        <button onclick="favorilerGoster()" class="relative flex flex-col items-center text-gray-400 hover:text-brand-purple transition gap-1">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-            <span class="text-[10px] font-bold">Favoriler</span>
-            <span id="favSayacMobil" class="hidden absolute -top-1 right-2 bg-brand-purple text-white text-[9px] font-black rounded-full min-w-[16px] h-[16px] px-1 items-center justify-center"></span>
-        </button>
-        <button onclick="listeGoster()" class="relative flex flex-col items-center text-gray-400 hover:text-brand-purple transition gap-1">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            <span class="text-[10px] font-bold">Sepetim</span>
-            <span id="listeSayacMobil" class="hidden absolute -top-1 right-1 bg-brand-purple text-white text-[9px] font-black rounded-full min-w-[16px] h-[16px] px-1 items-center justify-center"></span>
-        </button>
-    </div>
-
-    <section class="hero-gradient md:py-20 py-12 px-6 md:px-12 md:rounded-b-[4rem] rounded-b-[2.5rem] shadow-sm mb-8 md:mb-16 relative overflow-hidden">
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 bg-brand-purple/5 rounded-full blur-3xl"></div>
-        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between relative z-10">
-            <div class="w-full md:w-[55%] text-center md:text-left mb-10 md:mb-0">
-                <div class="inline-flex items-center gap-2 bg-white/10 text-brand-light text-xs md:text-sm mb-5 px-4 py-2 rounded-full border border-white/10">🪔 Gece yarısı bile, en iyi fiyatı biz bulalım</div>
-                <h2 class="font-display text-4xl md:text-6xl font-semibold text-gray-900 leading-[1.08] mb-5"><span class="font-normal">En uygun fiyatı</span><br><span class="italic font-semibold">Bebiio bulsun</span></h2>
-                <p class="text-gray-500 text-base md:text-lg mb-8 font-medium max-w-lg mx-auto md:mx-0">Bebek ürünlerini tek bir ekranda karşılaştır. Bütçeni koru, zamanın sana ve bebeğine kalsın.</p>
-                <div class="bg-white p-2 rounded-2xl md:rounded-full shadow-lg flex flex-col md:flex-row items-center w-full max-w-xl border border-gray-100 focus-within:ring-4 focus-within:ring-brand-purple/20 transition-all gap-2 md:gap-0">
-                    <div class="flex items-center w-full px-2">
-                        <svg class="w-6 h-6 text-gray-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" id="aramaInput" placeholder="Marka veya beden ara..." class="w-full px-4 py-4 focus:outline-none text-gray-700 font-bold bg-transparent text-sm md:text-base placeholder-gray-400">
-                    </div>
-                    <button id="karsilastirBtn" class="w-full md:w-auto bg-brand-purple hover:bg-brand-purpleHover text-white font-bold py-4 px-8 rounded-xl md:rounded-full transition-colors shadow-md text-base">Fiyatı bul</button>
-                </div>
-            </div>
-            <div class="hidden md:flex w-[45%] justify-end">
-                <div class="relative w-80 h-80 bg-white rounded-full shadow-soft flex items-center justify-center p-8 border-8 border-brand-light hover-lift">
-                    <svg class="w-full h-full text-brand-purple opacity-10" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
-                    <div class="absolute -left-6 top-10 bg-white text-gray-800 px-5 py-3 rounded-2xl font-black text-sm shadow-xl flex items-center gap-2 border border-gray-50">
-                        <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span> Anlık Tarama
-                    </div>
-                    <div class="absolute -right-4 bottom-10 bg-brand-purple text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-xl rotate-6">
-                        Miniklerin favorisi! 💖
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <main id="karsilastirma-alani" class="container mx-auto px-4 md:px-6 pt-4">
-        <div class="flex justify-end items-center mb-6 md:mb-8">
-            <span id="istatistikMetni" class="text-xs md:text-sm font-bold text-gray-500 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 flex items-center gap-2 w-full sm:w-auto justify-center">
-                <svg class="w-4 h-4 animate-spin text-brand-purple" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                Veriler işleniyor...
-            </span>
-        </div>
-
-        <div id="mantikliSecimAlani" class="hidden mb-6 md:mb-8"></div>
-
-        <div class="flex items-center gap-2 mb-4">
-            <div id="kategoriSekmeleri" class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 flex-1"></div>
-            <button onclick="kategoriMenuAc()" class="shrink-0 text-[11px] font-bold text-brand-purple bg-brand-light px-3 py-2 rounded-full whitespace-nowrap">📂 Tümü</button>
-        </div>
-
-        <div class="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
-            <button data-filtre="tumu" onclick="filtreUygula('tumu')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors">Tümü</button>
-            <button data-filtre="500altı" onclick="filtreUygula('500altı')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors">💰 500 TL Altı</button>
-            <button data-filtre="favoriler" onclick="filtreUygula('favoriler')" class="filtre-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors">❤️ Favorilerim</button>
-        </div>
-
-        <div class="flex flex-wrap gap-2 mb-6">
-            <select id="bedenFiltre" onchange="filtreUygula(aktifFiltre)" class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-600 focus:outline-none focus:border-brand-purple">
-                <option value="tumu">Tüm Bedenler</option>
-                <option value="0">Prematüre (0-3 kg)</option>
-                <option value="1">1 Numara · Yenidoğan (2-5 kg)</option>
-                <option value="2">2 Numara · Mini (3-6 kg)</option>
-                <option value="3">3 Numara · Midi (4-9 kg)</option>
-                <option value="4">4 Numara · Maxi (7-18 kg)</option>
-                <option value="5">5 Numara · Junior (11-25 kg)</option>
-                <option value="6">6 Numara · XLarge (15+ kg)</option>
-                <option value="7">7 Numara · XXLarge (18+ kg)</option>
-            </select>
-            <select id="markaFiltre" onchange="filtreUygula(aktifFiltre)" class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-600 focus:outline-none focus:border-brand-purple">
-                <option value="tumu">Tüm Markalar</option>
-            </select>
-            <select id="siralamaSecimi" onchange="filtreUygula(aktifFiltre)" class="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-600 focus:outline-none focus:border-brand-purple ml-auto">
-                <option value="fiyatArtan">Fiyat: Düşükten Yükseğe</option>
-                <option value="fiyatAzalan">Fiyat: Yüksekten Düşüğe</option>
-                <option value="birimfiyat">Birim Fiyat: En Uygun</option>
-                <option value="saticiSayisi">Satıcı Sayısı: Çoktan Aza</option>
-            </select>
-        </div>
-
-        <div id="sonGoruntulenenlerAlani" class="hidden mb-6 md:mb-8"></div>
-        
-        <div id="urunGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            <!-- Dinamik Kartlar -->
-        </div>
-        <p id="bosDurumMetni" class="hidden text-center text-gray-400 font-bold py-16">Bu filtreye uyan ürün bulunamadı.</p>
-    </main>
-
-    <div id="urunDetayModal" class="hidden fixed inset-0 z-[100] bg-gray-900/40 backdrop-blur-sm items-end md:items-center justify-center md:p-4">
-        <div class="absolute inset-0" onclick="modalKapat()"></div>
-        <div class="bg-gray-50 rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-3xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-slide-up md:animate-modal-in relative z-10 mt-auto md:mt-0 border-t border-white/50">
-            <div class="w-full flex justify-center pt-3 md:hidden absolute top-0 z-20" onclick="modalKapat()">
-                <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-            </div>
-
-            <div class="bg-white p-5 pt-8 md:p-8 md:pt-8 border-b border-gray-100 flex justify-between items-start">
-                <div class="flex gap-4 md:gap-6 items-center">
-                    <div id="modalResimAlani" class="w-16 h-16 md:w-20 md:h-20 bg-brand-light rounded-2xl flex items-center justify-center text-brand-purple shrink-0 border border-brand-purple/10 overflow-hidden p-2">
-                        <!-- Dinamik Resim/İkon -->
-                    </div>
-                    <div>
-                        <span id="modalMarka" class="text-[10px] md:text-xs font-black text-brand-purple uppercase tracking-widest bg-brand-light px-3 py-1 rounded-md"></span>
-                        <h2 id="modalOzet" class="font-display text-xl md:text-2xl font-semibold text-gray-900 mt-2 md:mt-3 leading-tight line-clamp-2"></h2>
-                    </div>
-                </div>
-                <button onclick="modalKapat()" class="hidden md:flex p-2 text-gray-400 hover:text-gray-800 bg-gray-50 hover:bg-gray-200 rounded-full transition-colors shrink-0 ml-4 border border-gray-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            
-            <div class="p-4 md:p-8 overflow-y-auto flex-1 bg-gray-50/50">
-                <div class="bg-white p-5 md:p-6 rounded-2xl border border-gray-100 mb-6 flex flex-col sm:flex-row justify-between items-center shadow-soft gap-4 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                    <div class="text-center sm:text-left relative z-10">
-                        <div class="text-xs md:text-sm font-bold text-gray-500 mb-1 flex items-center justify-center sm:justify-start gap-1">
-                            <svg class="w-4 h-4 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            En Ucuz Fiyat
-                        </div>
-                        <div class="text-4xl md:text-5xl font-black text-brand-green tracking-tight">
-                            <span id="modalEnUcuz"></span>
-                        </div>
-                        <div class="text-[11px] md:text-xs font-black text-gray-400 mt-2 uppercase tracking-widest">Satıcı: <span id="modalEnUcuzPlatform" class="text-gray-800"></span></div>
-                    </div>
-                    <a id="modalEnUcuzLink" href="#" target="_blank" class="w-full sm:w-auto bg-gray-900 hover:bg-black text-white px-8 py-4 rounded-xl font-bold text-sm md:text-base text-center shadow-lg transition-all hover:scale-105 active:scale-95 relative z-10">
-                        Satın Al ↗
-                    </a>
-                </div>
-
-                <div id="modalBirimFiyat" class="text-xs font-bold text-gray-500 bg-white px-4 py-2.5 rounded-xl border border-gray-100 mb-4 text-center sm:text-left"></div>
-
-                <div id="modalAksiyonButonlari" class="flex gap-2 mb-6"></div>
-
-                <div class="flex items-center justify-between mb-3 px-1">
-                    <h3 class="font-black text-gray-800 text-sm md:text-base uppercase tracking-wide">Diğer Seçenekler</h3>
-                    <span id="modalSaticiSayisi" class="text-xs font-bold text-gray-500 bg-gray-200/60 px-3 py-1 rounded-md"></span>
-                </div>
-                
-                <div id="modalSaticiListesi" class="flex flex-col gap-2 md:gap-3 pb-safe">
-                    <!-- Dinamik Liste -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <button id="yukariCikBtn" onclick="yukariCik()" class="hidden fixed bottom-24 md:bottom-6 right-4 md:right-6 z-40 w-11 h-11 bg-white text-gray-500 hover:text-brand-purple border border-gray-100 rounded-full shadow-lg flex items-center justify-center transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-    </button>
-
-    <div id="karsilastirBar" class="hidden fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-4 animate-fade-in-up"
-        <span id="karsilastirSayacMetni" class="font-bold text-sm"></span>
-        <button onclick="karsilastirmaGoster()" class="bg-brand-purple hover:bg-brand-purpleHover px-4 py-2 rounded-xl font-black text-xs uppercase tracking-wide transition-colors">Karşılaştır</button>
-        <button onclick="karsilastirmaTemizle()" class="text-gray-400 hover:text-white transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-    </div>
-
-    <div id="karsilastirmaModal" class="hidden fixed inset-0 z-[100] bg-gray-900/40 backdrop-blur-sm items-end md:items-center justify-center md:p-4">
-        <div class="absolute inset-0" onclick="karsilastirmaModalKapat()"></div>
-        <div class="bg-gray-50 rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-slide-up md:animate-modal-in relative z-10 mt-auto md:mt-0">
-            <div class="w-full flex justify-center pt-3 md:hidden absolute top-0 z-20" onclick="karsilastirmaModalKapat()">
-                <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-            </div>
-            <div class="bg-white p-5 pt-8 md:p-6 border-b border-gray-100 flex justify-between items-center">
-                <h2 class="font-display text-lg md:text-xl font-semibold text-gray-900">⚖️ Ürün Karşılaştırma</h2>
-                <button onclick="karsilastirmaModalKapat()" class="hidden md:flex p-2 text-gray-400 hover:text-gray-800 bg-gray-50 hover:bg-gray-200 rounded-full transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div id="karsilastirmaIcerik" class="p-4 md:p-6 overflow-y-auto flex-1 bg-gray-50/50">
-                <!-- Dinamik -->
-            </div>
-        </div>
-    </div>
-
-    <div id="listeModal" class="hidden fixed inset-0 z-[100] bg-gray-900/40 backdrop-blur-sm items-end md:items-center justify-center md:p-4">
-        <div class="absolute inset-0" onclick="listeModalKapat()"></div>
-        <div class="bg-gray-50 rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-2xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-slide-up md:animate-modal-in relative z-10 mt-auto md:mt-0">
-            <div class="w-full flex justify-center pt-3 md:hidden absolute top-0 z-20" onclick="listeModalKapat()">
-                <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-            </div>
-            <div class="bg-white p-5 pt-8 md:p-6 border-b border-gray-100 flex justify-between items-center">
-                <h2 class="font-display text-lg md:text-xl font-semibold text-gray-900">🛒 Akıllı Alışveriş Listem</h2>
-                <button onclick="listeModalKapat()" class="hidden md:flex p-2 text-gray-400 hover:text-gray-800 bg-gray-50 hover:bg-gray-200 rounded-full transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div id="listeIcerik" class="p-4 md:p-6 overflow-y-auto flex-1 bg-gray-50/50">
-                <!-- Dinamik -->
-            </div>
-        </div>
-    </div>
-
-    <div id="kategoriMenuModal" class="hidden fixed inset-0 z-[100] bg-gray-900/40 backdrop-blur-sm items-end md:items-center justify-center md:p-4">
-        <div class="absolute inset-0" onclick="kategoriMenuKapat()"></div>
-        <div class="bg-gray-50 rounded-t-[2rem] md:rounded-[2rem] w-full md:max-w-3xl max-h-[85vh] md:max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-slide-up md:animate-modal-in relative z-10 mt-auto md:mt-0">
-            <div class="w-full flex justify-center pt-3 md:hidden absolute top-0 z-20" onclick="kategoriMenuKapat()">
-                <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-            </div>
-            <div class="bg-white p-5 pt-8 md:p-6 border-b border-gray-100 flex justify-between items-center">
-                <h2 class="font-display text-lg md:text-xl font-semibold text-gray-900">📂 Kategoriler</h2>
-                <button onclick="kategoriMenuKapat()" class="hidden md:flex p-2 text-gray-400 hover:text-gray-800 bg-gray-50 hover:bg-gray-200 rounded-full transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div id="kategoriMenuIcerik" class="p-4 md:p-6 overflow-y-auto flex-1 bg-gray-50/50 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                <!-- JS ile dolduruluyor -->
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function bildirimGoster(mesaj) {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = "bg-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl animate-fade-in-up font-bold text-sm flex items-center justify-center gap-2 border border-gray-700";
-            toast.innerHTML = `<span>${mesaj}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(10px)';
-                toast.style.transition = 'all 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 2000);
-        }
-
-        document.getElementById('karsilastirBtn').addEventListener('click', () => {
-            document.getElementById('karsilastirma-alani').scrollIntoView({ behavior: 'smooth' });
-            if(document.getElementById('aramaInput').value === "") document.getElementById('aramaInput').focus();
-        });
-
-        const SUPABASE_URL = 'https://bbemkqegyvbktqjbjqrr.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'sb_publishable_7zBh_4xXoVGNxFujbpAGew_qhBb2HhU';
-
-        let gruplanmisUrunler = [];
-        let favoriler = JSON.parse(localStorage.getItem('bebiio_favoriler') || '[]');
-        let listem = JSON.parse(localStorage.getItem('bebiio_liste') || '[]');
-        let karsilastirmaListesi = [];
-        let aktifFiltre = 'tumu';
-        let aktifKategori = 'Bebek Bezi';
-        let sonGoruntulenenler = JSON.parse(localStorage.getItem('bebiio_son_goruntulenenler') || '[]');
-
-        function fiyatiSayiyaCevir(fiyatMetni) {
-            if(!fiyatMetni) return 0;
-            let temiz = fiyatMetni.replace(/[^0-9,.]/g, '').trim();
-            temiz = temiz.replace(/\./g, '').replace(',', '.');
-            return parseFloat(temiz) || 0;
-        }
-
-        function formatFiyat(sayi) {
-            return sayi.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' TL';
-        }
-
-        function saatiGetir() {
-            const simdi = new Date();
-            return simdi.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-        }
-
-       function urunKimligiCikar(baslik, kategori = "Bebek Bezi") {
-            if (!baslik) baslik = "Bilinmeyen Ürün"; 
-            let k = baslik.toLowerCase();
-
-            k = k.replace(/\d+\s*\+?\s*-\s*\d+\s*kg/g, ''); 
-            k = k.replace(/\d+\s*\+?\s*kg/g, ''); 
-
-            let markalar = ['Gizmo','giggles','sleepy', 'prima', 'molfix', 'baby turco', 'evy baby', 'goon', 'paddlers', 'minies', 'huggies', 'pampers', 'canbebe', 'bambo', 'pure baby', 'jenny', 'pinemed', 'pine', 'bebem', 'pofy',
-                'philips avent', 'avent', 'chicco', 'nuk', 'wee baby', 'mamajoo', 'dr. brown', 'bibs', 'tommee tippee',
-                'lansinoh', 'twistshake', 'babyjem', 'bebelac', 'aptamil', 'sma', 'hipp', 'bebivita', 'nutrilon', 'similac'];
-            
-            let marka = markalar.find(m => k.includes(m));
-            if (!marka) marka = baslik.split(' ')[0] || 'Bebek Bezi';
-
-            let numaraMatch = k.match(/([1-7])\s*(numara|beden|boy)/);
-            let numara = numaraMatch ? numaraMatch[1] : '?';
-            
-            // YENİ DÜZELTME: Önce "82 adet, 100 yaprak" gibi kesin miktarları ara. Bulamazsan "2'li" paket ismine bak.
-            let adetMatch = k.match(/(\d{1,4})\s*(adet|yaprak|parça|pcs)/);
-            if (!adetMatch) {
-                adetMatch = k.match(/(\d{1,4})\s*('l|li|lu|lü)/);
-            }
-            let adet = adetMatch ? parseInt(adetMatch[1]) : '?';
-
-            // NOT: "Selpak zeytinyağlı" ile "Selpak sade" gibi FARKLI ürünlerin
-            // yanlışlıkla aynı grupta (dolayısıyla aynı fiyat karşılaştırmasında)
-            // görünmesini engellemek için ürün çeşidini de gruplama anahtarına
-            // dahil ediyoruz. Özellikle ıslak mendil gibi kategorilerde önemli.
-            let varyantKelimeleri = ['zeytinyağlı', 'zeytin yağlı', 'aloe vera', 'hassas', 'parfümsüz',
-                'kokulu', 'losyonlu', 'organik', 'doğal', 'antibakteriyel', 'sade', 'klasik'];
-            let varyant = varyantKelimeleri.find(v => k.includes(v)) || '';
-            
-            // "tur" (Standart Bez/Külot Bez) sadece Bebek Bezi kategorisinde anlamlı.
-            // Diğer kategorilerde (ıslak mendil, biberon vb.) bu etiketi eklemiyoruz.
-            let tur = '';
-            if (kategori === 'Bebek Bezi') {
-                tur = 'Standart Bez';
-                if (k.includes('külot')) tur = 'Külot Bez';
-                if (k.includes('torba')) tur = 'İdrar Torbalı Bez';
-            }
-
-            let isimParcalari = [marka.charAt(0).toUpperCase() + marka.slice(1)];
-            if (tur) isimParcalari.push(tur);
-            if (numara !== '?') isimParcalari.push('- ' + numara + ' Numara');
-            let grupIsmi = isimParcalari.join(' ').trim();
-            if (varyant) grupIsmi += ` (${varyant.charAt(0).toUpperCase() + varyant.slice(1)})`;
-            if (adet !== '?') grupIsmi += ` - ${adet} Adet`;
-
-            return {
-                // kategori grupKodu'na dahil: farklı kategorilerdeki ürünler asla ayni gruba karismaz
-                grupKodu: `${kategori}-${marka}-${tur}-${varyant}-${numara}-${adet}`,
-                marka: marka.toUpperCase(),
-                adet: adet,
-                numara: numara,
-                kategori: kategori,
-                grupIsmi: grupIsmi
-            };
-        }
-
-        async function urunleriCekVeGrupla() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/urunler?select=urun_adi,fiyat,platform,urun_linki,resim_url,kategori&limit=3000`, {
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-                });
-                
-                if (!response.ok) throw new Error("Veritabanı reddetti");
-                const hamUrunler = await response.json();
-                if(hamUrunler.length === 0) throw new Error("Tablo boş");
-                
-                verileriIsle(hamUrunler, true);
-            } catch (error) {
-                console.warn("Veri çekilemedi. Yedek veriler yükleniyor...", error);
-                const yedekVeriler = [
-                    { urun_adi: "Prima Premium Care 4 Numara 126 Adet Bebek Bezi", platform: "Trendyol", fiyat: "499,00 TL", urun_linki: "#", resim_url: "" },
-                    { urun_adi: "Sleepy Natural 5 Numara 100 Adet", platform: "N11", fiyat: "285,00 TL", urun_linki: "#", resim_url: "" }
-                ];
-                verileriIsle(yedekVeriler, false);
-            }
-        }
-
-        function verileriIsle(hamUrunler, gercekMi) {
-            let gruplar = {};
-
-            hamUrunler.forEach(urun => {
-                if (!urun || !urun.urun_adi || !urun.fiyat) return; 
-
-                let kimlik = urunKimligiCikar(urun.urun_adi, urun.kategori || 'Bebek Bezi');
-                // NOT: Eskiden "hem beden hem adet bilinmiyorsa sil" filtresi vardı.
-                // Bu, bez için mantıklıydı ama biberon/mama/emzik gibi beden
-                // kavramı olmayan ürünlerde neredeyse her şeyi silerdi — kaldırıldı.
-
-                if(!gruplar[kimlik.grupKodu]) {
-                    gruplar[kimlik.grupKodu] = {
-                        grupKodu: kimlik.grupKodu, 
-                        grupIsmi: kimlik.grupIsmi,
-                        orijinalIsim: urun.urun_adi, 
-                        marka: kimlik.marka,
-                        adet: kimlik.adet, // birim fiyat hesaplamasi icin
-                        numara: kimlik.numara, // beden/yas filtresi icin
-                        kategori: kimlik.kategori,
-                        resim: urun.resim_url || "", // Veritabanından gelen resmi yakalıyoruz
-                        saticilar: []
-                    };
-                }
-
-                if (urun.urun_adi.length > gruplar[kimlik.grupKodu].orijinalIsim.length) {
-                    gruplar[kimlik.grupKodu].orijinalIsim = urun.urun_adi;
-                }
-                
-                // Eğer grubun resmi yoksa ama gelen üründe resim varsa, grubun resmi yap
-                if (!gruplar[kimlik.grupKodu].resim && urun.resim_url) {
-                    gruplar[kimlik.grupKodu].resim = urun.resim_url;
-                }
-                
-                let fiyatSayi = fiyatiSayiyaCevir(urun.fiyat);
-
-                if (fiyatSayi > 0 && fiyatSayi < 40 && kimlik.adet !== '?') {
-                    fiyatSayi = fiyatSayi * kimlik.adet;
-                }
-                if (fiyatSayi < 50) return; 
-
-                let klonMu = gruplar[kimlik.grupKodu].saticilar.some(s => s.platform === urun.platform && Math.abs(s.fiyatSayi - fiyatSayi) <= 1);
-                
-                if (!klonMu) {
-                    gruplar[kimlik.grupKodu].saticilar.push({
-                        platform: urun.platform,
-                        fiyatSayi: fiyatSayi,
-                        link: urun.urun_linki
-                    });
-                }
-            });
-
-            gruplanmisUrunler = Object.values(gruplar).filter(g => g.saticilar.length > 0).map(g => {
-                g.saticilar.sort((a, b) => a.fiyatSayi - b.fiyatSayi);
-                g.enUcuzFiyat = g.saticilar[0].fiyatSayi;
-                return g;
-            });
-
-            gruplanmisUrunler.sort((a, b) => a.enUcuzFiyat - b.enUcuzFiyat);
-
-            let durumMetni = gercekMi ? `<div class="flex items-center gap-2"><div class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div><span class="text-green-700 hidden sm:inline">Canlı Veri:</span> <span class="text-gray-800">${gruplanmisUrunler.length} benzersiz ürün</span></div>` : `<span class="text-yellow-600">● Test Modu</span>`;
-            document.getElementById('istatistikMetni').innerHTML = durumMetni;
-            kategoriSekmeleriDoldur();
-            markaSecenekleriDoldur();
-            mantikliSecimGoster();
-            sonGoruntulenenlerGoster();
-            filtreUygula(aktifFiltre);
-        }
-
-        function birimFiyatHesapla(grup) {
-            if (!grup.adet || grup.adet === '?' || grup.adet <= 0) return null;
-            return grup.enUcuzFiyat / grup.adet;
-        }
-
-        function ekranaBas(gruplar) {
-            const grid = document.getElementById('urunGrid');
-            const bosMetin = document.getElementById('bosDurumMetni');
-            grid.innerHTML = '';
-
-            if (gruplar.length === 0) {
-                bosMetin.classList.remove('hidden');
-            } else {
-                bosMetin.classList.add('hidden');
-            }
-
-            gruplar.forEach((grup) => {
-                const kart = document.createElement('div');
-                const secili = karsilastirmaListesi.includes(grup.grupKodu);
-                kart.className = "bg-white p-5 rounded-3xl shadow-sm border border-gray-100/80 hover-lift flex flex-col h-full cursor-pointer group relative overflow-hidden" + (secili ? " kart-secili" : "");
-                kart.onclick = () => detayAc(grup.grupKodu);
-
-                let resimHTML = grup.resim 
-                    ? `<img src="${grup.resim}" alt="${grup.marka}" loading="lazy" decoding="async" class="w-full h-full object-contain mix-blend-multiply drop-shadow-sm transition-transform group-hover:scale-110">` 
-                    : `<svg class="w-10 h-10 drop-shadow-sm group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>`;
-
-                const favMi = favoriler.includes(grup.grupKodu);
-                const birimFiyat = birimFiyatHesapla(grup);
-                const birimFiyatHTML = birimFiyat
-                    ? `<div class="text-[10px] font-bold text-gray-400 mt-0.5">${formatFiyat(birimFiyat)}/adet</div>`
-                    : '';
-
-                kart.innerHTML = `
-                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-brand-light rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
-                    <div class="absolute top-3 left-3 z-20 flex gap-1.5" onclick="event.stopPropagation()">
-                        <button onclick="karsilastirTogle('${grup.grupKodu}')" title="Karşılaştırmaya ekle" class="w-7 h-7 rounded-full bg-white/90 backdrop-blur border border-gray-200 flex items-center justify-center text-gray-400 hover:text-brand-purple transition-colors shadow-sm ${secili ? 'text-brand-purple border-brand-purple' : ''}">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        </button>
-                    </div>
-                    <div class="absolute top-3 right-3 z-20" onclick="event.stopPropagation()">
-                        <button onclick="favoriTogle('${grup.grupKodu}')" title="Favorilere ekle" class="w-7 h-7 rounded-full bg-white/90 backdrop-blur border border-gray-200 flex items-center justify-center text-gray-300 hover:text-pink-500 transition-colors shadow-sm ${favMi ? 'kalp-dolu border-pink-200' : ''}">
-                            <svg class="w-4 h-4" fill="${favMi ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                        </button>
-                    </div>
-                    <div class="flex flex-col items-center text-center mb-4 relative z-10 mt-6">
-                        <div class="w-full flex justify-center items-start mb-2">
-                            <span class="text-[9px] font-black text-brand-purple uppercase tracking-widest bg-brand-light px-2 py-1 rounded">${grup.marka}</span>
-                        </div>
-                        <div class="w-24 h-24 bg-transparent flex items-center justify-center text-gray-300 mb-2 group-hover:text-brand-purple transition-colors p-2">
-                            ${resimHTML}
-                        </div>
-                        <h3 class="text-[15px] font-black text-gray-800 leading-tight line-clamp-2 px-1">${grup.grupIsmi}</h3>
-                        <span class="bg-gray-50 text-gray-400 text-[10px] font-bold px-2 py-1 rounded-md border border-gray-100 mt-2">${grup.saticilar.length} Satıcı</span>
-                    </div>
-                    
-                    <div class="mt-auto pt-4 relative z-10 border-t border-gray-50/80">
-                        <div class="flex justify-between items-end">
-                            <div class="text-left">
-                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">En Ucuz</div>
-                                <div class="text-xl font-black text-brand-green">${formatFiyat(grup.enUcuzFiyat)}</div>
-                                ${birimFiyatHTML}
-                            </div>
-                            <div class="text-right">
-                                <div class="text-[11px] font-extrabold text-gray-700 bg-gray-50 px-2 py-1 rounded">${grup.saticilar[0].platform}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(kart);
-            });
-        }
-
-        function detayAc(grupKodu) {
-            const grup = gruplanmisUrunler.find(g => g.grupKodu === grupKodu);
-            if(!grup) return;
-
-            sonGoruntulenenEkle(grupKodu);
-
-            document.getElementById('modalMarka').innerText = grup.marka;
-            document.getElementById('modalOzet').innerText = grup.grupIsmi;
-            document.getElementById('modalEnUcuz').innerText = formatFiyat(grup.enUcuzFiyat);
-            document.getElementById('modalEnUcuzPlatform').innerText = grup.saticilar[0].platform;
-            document.getElementById('modalEnUcuzLink').href = grup.saticilar[0].link;
-            document.getElementById('modalSaticiSayisi').innerText = `${grup.saticilar.length} Satıcı`;
-
-            // Modal içine de resmi basıyoruz
-            let modalResimHTML = grup.resim 
-                ? `<img src="${grup.resim}" alt="${grup.marka}" decoding="async" class="w-full h-full object-contain mix-blend-multiply">` 
-                : `<svg class="w-8 h-8 md:w-10 md:h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>`;
-            document.getElementById('modalResimAlani').innerHTML = modalResimHTML;
-
-            const birimFiyat = birimFiyatHesapla(grup);
-            const ortalamaFiyat = grup.saticilar.reduce((t, s) => t + s.fiyatSayi, 0) / grup.saticilar.length;
-            let listeHTML = '';
-            grup.saticilar.forEach((s, index) => {
-                let platformRenk = "text-gray-800";
-                let badgeClass = "bg-white border-gray-200";
-                
-                if(s.platform === "Trendyol") { platformRenk = "text-orange-500"; badgeClass = "border-orange-100"; }
-                if(s.platform === "Amazon TR") { platformRenk = "text-blue-600"; badgeClass = "border-blue-100"; }
-                if(s.platform === "Hepsiburada") { platformRenk = "text-orange-600"; badgeClass = "border-orange-100"; }
-                if(s.platform === "N11") { platformRenk = "text-purple-600"; badgeClass = "border-purple-100"; }
-
-                let enUcuzMu = index === 0 ? `<span class="bg-brand-green text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-widest">En Ucuz</span>` : '';
-                let saticiBirimFiyat = (grup.adet && grup.adet !== '?' && grup.adet > 0) ? `<span class="text-[11px] font-bold text-gray-400">${formatFiyat(s.fiyatSayi / grup.adet)}/adet</span>` : '';
-
-                let ortalamaRozeti = '';
-                if (grup.saticilar.length > 1 && ortalamaFiyat > 0) {
-                    const fark = Math.round((1 - (s.fiyatSayi / ortalamaFiyat)) * 100);
-                    if (fark >= 5) {
-                        ortalamaRozeti = `<span class="text-[10px] font-bold text-brand-green bg-brand-greenLight px-2 py-0.5 rounded">Ortalamadan %${fark} ucuz</span>`;
-                    }
-                }
-
-                listeHTML += `
-                    <div class="flex items-center justify-between bg-white p-3 md:p-4 rounded-xl border ${badgeClass} shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex flex-col gap-1">
-                            <div class="flex items-center gap-2">
-                                <span class="font-black text-sm md:text-base ${platformRenk}">${s.platform}</span>
-                                ${enUcuzMu}
-                                ${ortalamaRozeti}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-lg md:text-xl font-black text-gray-900">${formatFiyat(s.fiyatSayi)}</span>
-                                ${saticiBirimFiyat}
-                            </div>
-                        </div>
-                        <a href="${s.link}" target="_blank" class="bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 px-4 py-2 md:px-6 md:py-3 rounded-lg font-bold text-xs md:text-sm transition-colors flex items-center gap-1 active:scale-95">
-                            Git <span class="hidden sm:inline">↗</span>
-                        </a>
-                    </div>
-                `;
-            });
-            document.getElementById('modalSaticiListesi').innerHTML = listeHTML;
-
-            const favMi = favoriler.includes(grup.grupKodu);
-            const listeMi = listem.includes(grup.grupKodu);
-            const waMetni = encodeURIComponent(`👀 ${grup.grupIsmi} için en ucuz fiyatı buldum: ${formatFiyat(grup.enUcuzFiyat)} (${grup.saticilar[0].platform})\n${grup.saticilar[0].link}\n\nBebiio ile karşılaştırdım 🪔`);
-            document.getElementById('modalAksiyonButonlari').innerHTML = `
-                <button onclick="favoriTogle('${grup.grupKodu}'); detayAc('${grup.grupKodu}')" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm border transition-colors ${favMi ? 'bg-pink-50 border-pink-200 text-pink-600' : 'bg-white border-gray-200 text-gray-600 hover:border-pink-300'}">
-                    <svg class="w-4 h-4" fill="${favMi ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                    ${favMi ? 'Favoride' : 'Favorile'}
-                </button>
-                <button onclick="listeyeEkleCikar('${grup.grupKodu}'); detayAc('${grup.grupKodu}')" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm border transition-colors ${listeMi ? 'bg-brand-light border-brand-purple text-brand-purple' : 'bg-white border-gray-200 text-gray-600 hover:border-brand-purple'}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    ${listeMi ? 'Listede' : 'Listeye Ekle'}
-                </button>
-                <a href="https://wa.me/?text=${waMetni}" target="_blank" class="w-12 shrink-0 flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 hover:border-green-300 hover:text-green-600 transition-colors" title="WhatsApp'ta paylaş">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"></path><path d="M12.001 2C6.478 2 2 6.478 2 12c0 1.865.508 3.615 1.395 5.116L2 22l4.996-1.365A9.945 9.945 0 0012 22c5.523 0 10-4.478 10-10S17.523 2 12 2zm0 18a8.014 8.014 0 01-4.078-1.108l-.293-.174-3.017.825.828-2.988-.19-.306A7.955 7.955 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z"></path></svg>
-                </a>
-            `;
-
-            const saticiOrtalama = grup.saticilar.reduce((t, s) => t + s.fiyatSayi, 0) / grup.saticilar.length;
-            const ucuzlukOrani = grup.saticilar.length > 1 ? Math.round((1 - grup.enUcuzFiyat / saticiOrtalama) * 100) : 0;
-            const rozetHTML = ucuzlukOrani >= 8
-                ? `<span class="inline-block bg-brand-greenLight text-brand-green text-[11px] font-bold px-2.5 py-1 rounded-full mt-2">Diğer satıcıların ortalamasından %${ucuzlukOrani} uygun</span>`
-                : '';
-            document.getElementById('modalBirimFiyat').innerHTML = (birimFiyat ? `📦 Birim fiyat: <strong class="text-gray-700">${formatFiyat(birimFiyat)}/adet</strong>` : '') + rozetHTML;
-
-            const modal = document.getElementById('urunDetayModal');
-            document.body.style.overflow = 'hidden'; 
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function modalKapat() {
-            const modal = document.getElementById('urunDetayModal');
-            document.body.style.overflow = 'auto'; 
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        let aramaDebounceId = null;
-        document.getElementById('aramaInput').addEventListener('input', () => {
-            clearTimeout(aramaDebounceId);
-            aramaDebounceId = setTimeout(() => filtreUygula(aktifFiltre), 200);
-        });
-
-        // ===================== ARAMA OVERLAY =====================
-        function aramaAc() {
-            const overlay = document.getElementById('aramaOverlay');
-            const girdi = document.getElementById('aramaOverlayInput');
-            girdi.value = document.getElementById('aramaInput').value;
-            document.body.style.overflow = 'hidden';
-            overlay.classList.remove('hidden');
-            overlay.classList.add('flex');
-            setTimeout(() => girdi.focus(), 60);
-        }
-
-        function aramaKapat() {
-            document.body.style.overflow = 'auto';
-            document.getElementById('aramaOverlay').classList.add('hidden');
-            document.getElementById('aramaOverlay').classList.remove('flex');
-        }
-
-        document.getElementById('aramaOverlayInput').addEventListener('input', (e) => {
-            document.getElementById('aramaInput').value = e.target.value;
-            clearTimeout(aramaDebounceId);
-            aramaDebounceId = setTimeout(() => filtreUygula(aktifFiltre), 150);
-        });
-
-        document.getElementById('aramaOverlayInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                aramaKapat();
-                document.getElementById('karsilastirma-alani').scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-
-        // ===================== FİLTRELER =====================
-        function filtreUygula(tip) {
-            aktifFiltre = tip;
-            document.querySelectorAll('.filtre-chip').forEach(b => {
-                b.classList.toggle('aktif', b.dataset.filtre === tip);
-            });
-
-            let sonuc = gruplanmisUrunler.slice();
-
-            if (aktifKategori !== 'tumu') {
-                sonuc = sonuc.filter(g => g.kategori === aktifKategori);
-            }
-
-            const kelime = document.getElementById('aramaInput').value.toLowerCase().trim();
-            if (kelime) {
-                sonuc = sonuc.filter(g => g.orijinalIsim.toLowerCase().includes(kelime) || g.marka.toLowerCase().includes(kelime));
-            }
-
-            if (tip === '500altı') {
-                sonuc = sonuc.filter(g => g.enUcuzFiyat < 500);
-            } else if (tip === 'favoriler') {
-                sonuc = sonuc.filter(g => favoriler.includes(g.grupKodu));
-            }
-
-            const bedenEl = document.getElementById('bedenFiltre');
-            if (bedenEl && bedenEl.value !== 'tumu') {
-                sonuc = sonuc.filter(g => String(g.numara) === bedenEl.value);
-            }
-
-            const markaEl = document.getElementById('markaFiltre');
-            if (markaEl && markaEl.value !== 'tumu') {
-                sonuc = sonuc.filter(g => g.marka === markaEl.value);
-            }
-
-            const siralamaEl = document.getElementById('siralamaSecimi');
-            const siralama = siralamaEl ? siralamaEl.value : 'fiyatArtan';
-            if (siralama === 'fiyatAzalan') {
-                sonuc.sort((a, b) => b.enUcuzFiyat - a.enUcuzFiyat);
-            } else if (siralama === 'birimfiyat') {
-                sonuc = sonuc.filter(g => birimFiyatHesapla(g) !== null);
-                sonuc.sort((a, b) => birimFiyatHesapla(a) - birimFiyatHesapla(b));
-            } else if (siralama === 'saticiSayisi') {
-                sonuc.sort((a, b) => b.saticilar.length - a.saticilar.length);
-            } else {
-                sonuc.sort((a, b) => a.enUcuzFiyat - b.enUcuzFiyat);
-            }
-
-            ekranaBas(sonuc);
-        }
-
-        function bedenFiltreGorunurlugunuGuncelle() {
-            const bedenEl = document.getElementById('bedenFiltre');
-            if (!bedenEl) return;
-            if (aktifKategori === 'Bebek Bezi' || aktifKategori === 'tumu') {
-                bedenEl.classList.remove('hidden');
-            } else {
-                bedenEl.value = 'tumu'; // baska kategoriye gecince eski secimi sifirla
-                bedenEl.classList.add('hidden');
-            }
-        }
-
-        function kategoriSekmeleriDoldur() {
-            const alan = document.getElementById('kategoriSekmeleri');
-            const kategoriler = [...new Set(gruplanmisUrunler.map(g => g.kategori))];
-
-            // Sadece 1 kategori varsa sekmeleri hic gosterme (gereksiz kalabalik olmasin)
-            if (kategoriler.length <= 1) {
-                alan.innerHTML = '';
-                aktifKategori = kategoriler[0] || 'tumu';
-                bedenFiltreGorunurlugunuGuncelle();
-                return;
-            }
-
-            if (!kategoriler.includes(aktifKategori)) aktifKategori = 'tumu';
-
-            let html = `<button onclick="kategoriSec('tumu')" class="kategori-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors ${aktifKategori === 'tumu' ? 'aktif' : ''}">Tüm Ürünler (${gruplanmisUrunler.length})</button>`;
-            kategoriler.forEach(k => {
-                const sayi = gruplanmisUrunler.filter(g => g.kategori === k).length;
-                html += `<button onclick="kategoriSec('${k}')" class="kategori-chip shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-colors ${aktifKategori === k ? 'aktif' : ''}">${k} (${sayi})</button>`;
-            });
-            alan.innerHTML = html;
-            bedenFiltreGorunurlugunuGuncelle();
-        }
-
-        function kategoriSec(kategori) {
-            aktifKategori = kategori;
-            kategoriSekmeleriDoldur();
-            markaSecenekleriDoldur();
-            filtreUygula(aktifFiltre);
-        }
-
-        function markaSecenekleriDoldur() {
-            const markaEl = document.getElementById('markaFiltre');
-            const mevcutSecim = markaEl.value;
-            const kaynak = aktifKategori === 'tumu' ? gruplanmisUrunler : gruplanmisUrunler.filter(g => g.kategori === aktifKategori);
-            const markalar = [...new Set(kaynak.map(g => g.marka))].sort();
-            markaEl.innerHTML = '<option value="tumu">Tüm Markalar</option>' +
-                markalar.map(m => `<option value="${m}">${m.charAt(0) + m.slice(1).toLowerCase()}</option>`).join('');
-            if (markalar.includes(mevcutSecim)) markaEl.value = mevcutSecim;
-        }
-
-        // ===================== SAYAÇLAR =====================
-        function sayaclariGuncelle() {
-            const favEls = [document.getElementById('favSayacNav'), document.getElementById('favSayacMobil')];
-            favEls.forEach(el => {
-                if (!el) return;
-                if (favoriler.length > 0) { el.innerText = favoriler.length; el.classList.remove('hidden'); el.classList.add('flex'); }
-                else { el.classList.add('hidden'); el.classList.remove('flex'); }
-            });
-            const listeEls = [document.getElementById('listeSayacNav'), document.getElementById('listeSayacMobil')];
-            listeEls.forEach(el => {
-                if (!el) return;
-                if (listem.length > 0) { el.innerText = listem.length; el.classList.remove('hidden'); el.classList.add('flex'); }
-                else { el.classList.add('hidden'); el.classList.remove('flex'); }
-            });
-        }
-
-        // ===================== FAVORİLER =====================
-        function favoriTogle(kod) {
-            const idx = favoriler.indexOf(kod);
-            if (idx === -1) { favoriler.push(kod); bildirimGoster('Favorilere eklendi ❤️'); }
-            else { favoriler.splice(idx, 1); bildirimGoster('Favorilerden çıkarıldı'); }
-            localStorage.setItem('bebiio_favoriler', JSON.stringify(favoriler));
-            sayaclariGuncelle();
-            filtreUygula(aktifFiltre);
-        }
-
-        function favorilerGoster() {
-            filtreUygula('favoriler');
-            document.getElementById('karsilastirma-alani').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // ===================== ÜRÜN KARŞILAŞTIRMA =====================
-        function karsilastirTogle(kod) {
-            const idx = karsilastirmaListesi.indexOf(kod);
-            if (idx === -1) {
-                if (karsilastirmaListesi.length >= 3) { bildirimGoster('En fazla 3 ürün karşılaştırabilirsin ⚖️'); return; }
-                karsilastirmaListesi.push(kod);
-            } else {
-                karsilastirmaListesi.splice(idx, 1);
-            }
-            karsilastirmaCubuguGuncelle();
-            filtreUygula(aktifFiltre);
-        }
-
-        function karsilastirmaCubuguGuncelle() {
-            const bar = document.getElementById('karsilastirBar');
-            if (karsilastirmaListesi.length >= 2) {
-                bar.classList.remove('hidden');
-                document.getElementById('karsilastirSayacMetni').innerText = `${karsilastirmaListesi.length} ürün seçildi`;
-            } else {
-                bar.classList.add('hidden');
-            }
-        }
-
-        function karsilastirmaTemizle() {
-            karsilastirmaListesi = [];
-            karsilastirmaCubuguGuncelle();
-            filtreUygula(aktifFiltre);
-        }
-
-        function karsilastirmadanCikar(kod) {
-            const idx = karsilastirmaListesi.indexOf(kod);
-            if (idx > -1) karsilastirmaListesi.splice(idx, 1);
-            karsilastirmaCubuguGuncelle();
-            filtreUygula(aktifFiltre);
-            if (karsilastirmaListesi.length < 2) { karsilastirmaModalKapat(); return; }
-            karsilastirmaGoster();
-        }
-
-        function karsilastirmaGoster() {
-            const secilenler = karsilastirmaListesi.map(k => gruplanmisUrunler.find(g => g.grupKodu === k)).filter(Boolean);
-            if (secilenler.length < 2) { bildirimGoster('Karşılaştırmak için en az 2 ürün seç'); return; }
-
-            let enMantikliKod = null, enDusukBirim = Infinity;
-            secilenler.forEach(g => {
-                const bf = birimFiyatHesapla(g);
-                if (bf !== null && bf < enDusukBirim) { enDusukBirim = bf; enMantikliKod = g.grupKodu; }
-            });
-
-            let html = `<div class="grid gap-4 grid-cols-1 sm:grid-cols-${secilenler.length}">`;
-            secilenler.forEach(g => {
-                const bf = birimFiyatHesapla(g);
-                const enMantikli = g.grupKodu === enMantikliKod;
-                const resimHTML = g.resim ? `<img src="${g.resim}" loading="lazy" decoding="async" class="w-20 h-20 object-contain mix-blend-multiply mx-auto">` : `<div class="w-20 h-20 mx-auto"></div>`;
-                html += `
-                    <div class="bg-white rounded-2xl border ${enMantikli ? 'border-brand-purple ring-2 ring-brand-purple/20' : 'border-gray-100'} p-4 relative flex flex-col">
-                        <button onclick="karsilastirmadanCikar('${g.grupKodu}')" class="absolute top-2 right-2 text-gray-300 hover:text-gray-600">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                        ${enMantikli ? '<div class="text-center mb-2"><span class="bg-brand-purple text-white text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-widest">🏆 En Mantıklı Seçim</span></div>' : '<div class="h-6 mb-2"></div>'}
-                        ${resimHTML}
-                        <h4 class="font-black text-sm text-gray-800 text-center mt-3 mb-3 line-clamp-2">${g.grupIsmi}</h4>
-                        <div class="mt-auto space-y-2 text-sm">
-                            <div class="flex justify-between border-t border-gray-50 pt-2"><span class="text-gray-400 font-bold text-xs">Fiyat</span><span class="font-black text-brand-green">${formatFiyat(g.enUcuzFiyat)}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400 font-bold text-xs">Birim Fiyat</span><span class="font-bold text-gray-700">${bf ? formatFiyat(bf) + '/adet' : '—'}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400 font-bold text-xs">Satıcı Sayısı</span><span class="font-bold text-gray-700">${g.saticilar.length}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-400 font-bold text-xs">En Ucuz Mağaza</span><span class="font-bold text-gray-700">${g.saticilar[0].platform}</span></div>
-                        </div>
-                        <a href="${g.saticilar[0].link}" target="_blank" class="mt-4 bg-gray-900 hover:bg-black text-white text-center py-2.5 rounded-xl font-bold text-xs">Satın Al ↗</a>
-                    </div>`;
-            });
-            html += '</div>';
-            document.getElementById('karsilastirmaIcerik').innerHTML = html;
-
-            const modal = document.getElementById('karsilastirmaModal');
-            document.body.style.overflow = 'hidden';
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function karsilastirmaModalKapat() {
-            document.body.style.overflow = 'auto';
-            document.getElementById('karsilastirmaModal').classList.add('hidden');
-            document.getElementById('karsilastirmaModal').classList.remove('flex');
-        }
-
-        // ===================== AKILLI ALIŞVERİŞ LİSTESİ =====================
-        function listeyeEkleCikar(kod) {
-            const idx = listem.indexOf(kod);
-            if (idx === -1) { listem.push(kod); bildirimGoster('Sepete eklendi 🛒'); }
-            else { listem.splice(idx, 1); bildirimGoster('Sepetten çıkarıldı'); }
-            localStorage.setItem('bebiio_liste', JSON.stringify(listem));
-            sayaclariGuncelle();
-        }
-
-        function listeModalKapat() {
-            document.body.style.overflow = 'auto';
-            document.getElementById('listeModal').classList.add('hidden');
-            document.getElementById('listeModal').classList.remove('flex');
-        }
-
-        // ===================== KATEGORİ MENÜSÜ =====================
-        // Canlı taranan kategoriler "kategoriSec" ile filtreler; henüz
-        // taranmayanlar dürüstçe "yakında" diyor — sahte veri göstermiyoruz.
-        const KATEGORI_GRUPLARI = [
-            {
-                baslik: "Bebek Bezi & Islak Mendil",
-                ogeler: [
-                    { ad: "Bebek Bezi", canli: true },
-                    { ad: "Islak Mendil", canli: true },
-                    { ad: "Alt Açma Örtüsü", canli: true },
-                ]
-            },
-            {
-                baslik: "Emzirme & Bebek Beslenme",
-                ogeler: [
-                    { ad: "Biberon", canli: true },
-                    { ad: "Emzik", canli: true },
-                    { ad: "Bebek Maması", canli: true },
-                    { ad: "Mama Hazırlayıcı", canli: true },
-                    { ad: "Biberon Isıtıcı & Sterilizatör", canli: true },
-                    { ad: "Bebek Termosu & Alıştırma Bardağı", canli: true },
-                    { ad: "Mama Önlüğü & Kaşık", canli: true },
-                ]
-            },
-            {
-                baslik: "Araç & Gereç",
-                ogeler: [
-                    { ad: "Bebek Arabası", canli: true },
-                    { ad: "Oto Koltuğu", canli: true },
-                    { ad: "Ana Kucağı", canli: true },
-                    { ad: "Mama Sandalyesi", canli: true },
-                    { ad: "Kanguru & Portbebe", canli: true },
-                    { ad: "Yürüteç", canli: true },
-                ]
-            },
-            {
-                baslik: "Bebek Odası & Güvenlik",
-                ogeler: [
-                    { ad: "Beşik & Park Yatak", canli: true },
-                    { ad: "Bebek Yatakları", canli: true },
-                    { ad: "Bebek Odası Mobilyaları", canli: true },
-                    { ad: "Bebek Odası Tekstili", canli: true },
-                    { ad: "Ev & Bebek Güvenlik Ürünleri", canli: true },
-                    { ad: "Bebek Telsizi & Kamera", canli: true },
-                ]
-            },
-            {
-                baslik: "Emzirme (Anne)",
-                ogeler: [
-                    { ad: "Göğüs Pompası", canli: true },
-                    { ad: "Göğüs Pedi", canli: true },
-                    { ad: "Göğüs Kremi", canli: true },
-                    { ad: "Emzirme Önlüğü", canli: true },
-                    { ad: "Süt Saklama Poşeti", canli: true },
-                ]
-            },
-            {
-                baslik: "Bebek Bakım & Banyo & Sağlık",
-                ogeler: [
-                    { ad: "Bebek Şampuanı", canli: true },
-                    { ad: "Bebek Krem & Yağları", canli: true },
-                    { ad: "Bebek Banyo Ürünleri", canli: true },
-                    { ad: "Ateş Ölçer", canli: true },
-                    { ad: "Bebek Bakım Çantası", canli: true },
-                    { ad: "Buhar Makinesi", canli: true },
-                ]
-            },
-            {
-                baslik: "Giyim & Oyuncak",
-                ogeler: [
-                    { ad: "Bebek Giyim", canli: true },
-                    { ad: "Çocuk Giyim", canli: false },
-                    { ad: "Hamile Giyim", canli: false },
-                    { ad: "Oyuncaklar", canli: false },
-                ]
-            },
-        ];
-
-        function kategoriMenuDoldur() {
-            const canliKategoriler = new Set(gruplanmisUrunler.map(g => g.kategori));
-            let html = '';
-            KATEGORI_GRUPLARI.forEach(grup => {
-                html += `<div><h3 class="font-black text-brand-purple text-xs uppercase tracking-wide mb-3">${grup.baslik}</h3><div class="flex flex-col gap-1">`;
-                grup.ogeler.forEach(oge => {
-                    const gercektenCanli = oge.canli && canliKategoriler.has(oge.ad);
-                    if (gercektenCanli) {
-                        html += `<button onclick="kategoriMenudenSec('${oge.ad}')" class="text-left text-sm font-bold text-gray-700 hover:text-brand-purple py-1 transition-colors">${oge.ad}</button>`;
-                    } else {
-                        html += `<button onclick="bildirimGoster('${oge.ad} yakında! 🚀')" class="text-left text-sm font-medium text-gray-400 py-1 flex items-center gap-1.5">${oge.ad} <span class="text-[9px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-full font-bold">Yakında</span></button>`;
-                    }
-                });
-                html += `</div></div>`;
-            });
-            document.getElementById('kategoriMenuIcerik').innerHTML = html;
-        }
-
-        function kategoriMenuAc() {
-            kategoriMenuDoldur();
-            document.body.style.overflow = 'hidden';
-            const modal = document.getElementById('kategoriMenuModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function kategoriMenuKapat() {
-            document.body.style.overflow = 'auto';
-            document.getElementById('kategoriMenuModal').classList.add('hidden');
-            document.getElementById('kategoriMenuModal').classList.remove('flex');
-        }
-
-        function kategoriMenudenSec(kategoriAdi) {
-            kategoriMenuKapat();
-            kategoriSec(kategoriAdi);
-            document.getElementById('karsilastirma-alani').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function listeGoster() {
-            const urunler = listem.map(k => gruplanmisUrunler.find(g => g.grupKodu === k)).filter(Boolean);
-            const icerik = document.getElementById('listeIcerik');
-
-            if (urunler.length === 0) {
-                icerik.innerHTML = `<div class="text-center py-12 text-gray-400 font-bold">Sepetin boş. Ürün detayından "Listeye Ekle" ile ekleyebilirsin. 🛒</div>`;
-            } else {
-                let satirlar = '';
-                let enUcuzToplam = 0;
-                const platformSet = {};
-
-                urunler.forEach(g => {
-                    enUcuzToplam += g.enUcuzFiyat;
-                    g.saticilar.forEach(s => {
-                        if (!platformSet[s.platform]) platformSet[s.platform] = {};
-                        if (!(g.grupKodu in platformSet[s.platform]) || s.fiyatSayi < platformSet[s.platform][g.grupKodu]) {
-                            platformSet[s.platform][g.grupKodu] = s.fiyatSayi;
-                        }
-                    });
-                    satirlar += `
-                        <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100">
-                            <div>
-                                <div class="font-bold text-sm text-gray-800 line-clamp-1">${g.grupIsmi}</div>
-                                <div class="text-xs text-gray-400 font-bold">${formatFiyat(g.enUcuzFiyat)} • ${g.saticilar[0].platform}</div>
-                            </div>
-                            <button onclick="listeyeEkleCikar('${g.grupKodu}'); listeGoster();" class="text-gray-300 hover:text-red-500 p-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>`;
-                });
-
-                let enIyiTekMagaza = null, enIyiTekMagazaToplam = Infinity;
-                Object.keys(platformSet).forEach(p => {
-                    const kapsananSayisi = Object.keys(platformSet[p]).length;
-                    if (kapsananSayisi === urunler.length) {
-                        const toplam = Object.values(platformSet[p]).reduce((a, b) => a + b, 0);
-                        if (toplam < enIyiTekMagazaToplam) { enIyiTekMagazaToplam = toplam; enIyiTekMagaza = p; }
-                    }
-                });
-
-                let ozetHTML = `
-                    <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">🛒 En ucuz kombinasyon</span>
-                            <span class="text-xl font-black text-brand-green">${formatFiyat(enUcuzToplam)}</span>
-                        </div>`;
-                if (enIyiTekMagaza) {
-                    const tasarruf = enIyiTekMagazaToplam - enUcuzToplam;
-                    ozetHTML += `
-                        <div class="flex justify-between items-center mb-2 pt-2 border-t border-gray-50">
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">🏪 Tek mağaza (${enIyiTekMagaza})</span>
-                            <span class="text-lg font-black text-gray-700">${formatFiyat(enIyiTekMagazaToplam)}</span>
-                        </div>`;
-                    if (tasarruf > 1) {
-                        ozetHTML += `<div class="text-center bg-brand-greenLight text-brand-green font-black text-sm py-2 rounded-xl mt-2">💰 Farklı mağazalardan alarak ${formatFiyat(tasarruf)} tasarruf edersin</div>`;
-                    } else {
-                        ozetHTML += `<div class="text-center bg-gray-50 text-gray-500 font-bold text-xs py-2 rounded-xl mt-2">Tek mağazadan almak da mantıklı, fiyat farkı yok denecek kadar az.</div>`;
-                    }
-                } else {
-                    ozetHTML += `<div class="text-center bg-gray-50 text-gray-500 font-bold text-xs py-2 rounded-xl mt-2">Bu ürünlerin hepsini birden satan tek bir mağaza yok — en ucuz kombinasyonu tercih et.</div>`;
-                }
-                ozetHTML += '</div>';
-
-                icerik.innerHTML = ozetHTML + '<div class="space-y-2">' + satirlar + '</div>';
-            }
-
-            const modal = document.getElementById('listeModal');
-            document.body.style.overflow = 'hidden';
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        // ===================== SON GÖRÜNTÜLENENLER =====================
-        function sonGoruntulenenEkle(grupKodu) {
-            sonGoruntulenenler = sonGoruntulenenler.filter(k => k !== grupKodu);
-            sonGoruntulenenler.unshift(grupKodu);
-            sonGoruntulenenler = sonGoruntulenenler.slice(0, 10);
-            localStorage.setItem('bebiio_son_goruntulenenler', JSON.stringify(sonGoruntulenenler));
-        }
-
-        function sonGoruntulenenlerGoster() {
-            const alan = document.getElementById('sonGoruntulenenlerAlani');
-            const urunler = sonGoruntulenenler.map(k => gruplanmisUrunler.find(g => g.grupKodu === k)).filter(Boolean);
-
-            if (urunler.length === 0) {
-                alan.classList.add('hidden');
-                alan.innerHTML = '';
-                return;
-            }
-
-            let kartlar = '';
-            urunler.forEach(g => {
-                const resimHTML = g.resim
-                    ? `<img src="${g.resim}" loading="lazy" decoding="async" class="w-full h-full object-contain mix-blend-multiply">`
-                    : `<div class="w-full h-full"></div>`;
-                kartlar += `
-                    <div onclick="detayAc('${g.grupKodu}')" class="shrink-0 w-32 bg-white rounded-2xl border border-gray-100 p-3 cursor-pointer hover:border-brand-purple/40 transition-colors">
-                        <div class="w-full h-16 flex items-center justify-center mb-2">${resimHTML}</div>
-                        <div class="text-[11px] font-bold text-gray-700 line-clamp-2 leading-tight mb-1">${g.grupIsmi}</div>
-                        <div class="text-xs font-black text-brand-green">${formatFiyat(g.enUcuzFiyat)}</div>
-                    </div>`;
-            });
-
-            alan.innerHTML = `
-                <div class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3 px-1">Son baktıkların</div>
-                <div class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">${kartlar}</div>`;
-            alan.classList.remove('hidden');
-        }
-
-        // ===================== EN MANTIKLI SEÇİM (ANA SAYFA) =====================
-        function mantikliSecimGoster() {
-            const adaylar = gruplanmisUrunler.filter(g => birimFiyatHesapla(g) !== null);
-            const alan = document.getElementById('mantikliSecimAlani');
-            if (adaylar.length === 0) { alan.classList.add('hidden'); alan.innerHTML = ''; return; }
-
-            let en = adaylar[0];
-            adaylar.forEach(g => { if (birimFiyatHesapla(g) < birimFiyatHesapla(en)) en = g; });
-
-            const bf = birimFiyatHesapla(en);
-            const resimHTML = en.resim
-                ? `<img src="${en.resim}" loading="lazy" decoding="async" class="w-20 h-20 md:w-24 md:h-24 object-contain mix-blend-multiply">`
-                : `<svg class="w-20 h-20 md:w-24 md:h-24 text-gray-200 p-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>`;
-
-            alan.innerHTML = `
-                <div class="bg-gradient-to-br from-brand-purple to-purple-700 rounded-3xl p-5 md:p-6 shadow-float flex flex-col sm:flex-row items-center gap-4 md:gap-6 cursor-pointer hover:opacity-95 transition-opacity" onclick="detayAc('${en.grupKodu}')">
-                    <div class="bg-white rounded-2xl p-3 shrink-0 shadow-inner">${resimHTML || '<div class="w-20 h-20 md:w-24 md:h-24"></div>'}</div>
-                    <div class="text-center sm:text-left flex-1">
-                        <span class="bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">🤖 Bugünün En Mantıklı Seçimi</span>
-                        <h4 class="font-display text-white font-semibold text-lg md:text-xl mt-2 mb-1 line-clamp-1">${en.grupIsmi}</h4>
-                        <p class="text-purple-100 text-xs md:text-sm font-bold">Taranan ürünler arasında adet başına en düşük fiyat bu üründe.</p>
-                    </div>
-                    <div class="text-center bg-white/10 rounded-2xl px-5 py-3 shrink-0">
-                        <div class="text-white/70 text-[10px] font-bold uppercase tracking-widest">Birim Fiyat</div>
-                        <div class="text-white font-black text-2xl">${formatFiyat(bf)}</div>
-                        <div class="text-purple-200 text-[10px] font-bold">/adet</div>
-                    </div>
-                </div>`;
-            alan.classList.remove('hidden');
-        }
-
-        // ===================== İSKELET YÜKLEME EKRANI =====================
-        function iskeletGoster() {
-            const grid = document.getElementById('urunGrid');
-            let html = '';
-            for (let i = 0; i < 8; i++) {
-                html += `
-                    <div class="bg-white p-5 rounded-3xl border border-gray-100/80 animate-pulse">
-                        <div class="flex justify-center mb-4">
-                            <div class="w-24 h-24 bg-gray-100 rounded-2xl"></div>
-                        </div>
-                        <div class="h-3 bg-gray-100 rounded-full w-3/4 mx-auto mb-2"></div>
-                        <div class="h-3 bg-gray-100 rounded-full w-1/2 mx-auto mb-6"></div>
-                        <div class="h-8 bg-gray-100 rounded-xl"></div>
-                    </div>`;
-            }
-            grid.innerHTML = html;
-        }
-
-        // ===================== YUKARI ÇIK BUTONU =====================
-        window.addEventListener('scroll', () => {
-            const btn = document.getElementById('yukariCikBtn');
-            if (!btn) return;
-            if (window.scrollY > 600) btn.classList.remove('hidden');
-            else btn.classList.add('hidden');
-        });
-
-        function yukariCik() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        iskeletGoster();
-        sayaclariGuncelle();
-        urunleriCekVeGrupla();
-        setInterval(() => { urunleriCekVeGrupla(); }, 1800000);
-    </script>
-</body>
-</html>
+﻿import os
+import re
+import time
+import json
+import logging
+from urllib.parse import urljoin
+
+import psycopg2
+import requests
+from dotenv import load_dotenv
+from playwright.sync_api import sync_playwright
+from bs4 import BeautifulSoup
+
+try:
+    from playwright_stealth import stealth_sync
+    STEALTH_VAR = True
+except ImportError:
+    STEALTH_VAR = False
+
+load_dotenv()
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+log = logging.getLogger("bebiio_scraper")
+
+SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
+if not SUPABASE_DB_URL:
+    raise RuntimeError(
+        "SUPABASE_DB_URL ortam değişkeni bulunamadı. "
+        "Yerelde .env dosyasına, GitHub Actions'ta Secrets'a ekleyin."
+    )
+
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# Hepsiburada'nın bot-korumasının headless tarayıcı (Playwright) imzasına
+# tepki verdiği, düz bir HTTP isteğine tepki vermediği gözlemlendi.
+# Bu yüzden Hepsiburada için Playwright yerine sade requests kullanıyoruz.
+HTTP_HEADERS = {
+    "User-Agent": UA,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Connection": "keep-alive",
+}
+
+DEBUG_DIR = "debug_output"
+os.makedirs(DEBUG_DIR, exist_ok=True)
+
+
+def debug_snapshot(page, platform_name):
+    """Kart bulunamadığında sayfanın o anki ekran görüntüsünü ve HTML'ini kaydeder.
+    GitHub Actions'ta bu klasör artifact olarak indirilebiliyor (bkz. bebiio.yml).
+    Bot koruması mı yoksa selector mı bozuldu, ayırt etmek için şart."""
+    try:
+        safe_name = platform_name.lower().replace(" ", "_")
+        page.screenshot(path=f"{DEBUG_DIR}/{safe_name}.png", full_page=True)
+        with open(f"{DEBUG_DIR}/{safe_name}.html", "w", encoding="utf-8") as f:
+            f.write(page.content())
+        log.warning(f"[{platform_name}] Debug görüntüsü/HTML'i {DEBUG_DIR}/{safe_name}.* içine kaydedildi.")
+    except Exception as e:
+        log.warning(f"[{platform_name}] Debug snapshot alınamadı: {e}")
+
+
+def yeni_sayfa_olustur(context):
+    page = context.new_page()
+    if STEALTH_VAR:
+        stealth_sync(page)
+    return page
+
+
+def fiyati_temizle(fiyat_metni):
+    if not fiyat_metni:
+        return ""
+    temiz = re.sub(r'[^\d,.]', '', fiyat_metni).strip('.,')
+    if not temiz:
+        return ""
+    return temiz + " TL"
+
+
+def resmi_temizle(img_el, base_url=""):
+    if not img_el:
+        return ""
+    for attr in ("data-src", "data-lazy-src", "src", "srcset"):
+        val = img_el.get(attr)
+        if val:
+            url = val.split(",")[0].strip().split(" ")[0]
+            if url.startswith("//"):
+                url = "https:" + url
+            elif url.startswith("/") and base_url:
+                url = urljoin(base_url, url)
+            return url
+    return ""
+
+
+def urun_gecerli_mi(baslik, kategori="Bebek Bezi"):
+    """Kategoriye gore alakasiz urunleri eler. 'Bebek Bezi' kategorisinde
+    diger bebek bakim urunlerini (mendil, krem vb.) bilerek disliyoruz;
+    diger kategorilerde (Islak Mendil, Biberon, Mama, Emzik...) bu kisitlama
+    gecerli degil, cunku aradigimiz zaten o urun turu."""
+    if not baslik:
+        return False
+    b = baslik.lower()
+    if kategori == "Bebek Bezi":
+        yasaklilar = ['mendil', 'krem', 'havlu', 'şampuan', 'deterjan', 'sabun', 'ped',
+                      'alt açma', 'losyon', 'emzik', 'biberon', 'yatak', 'örtü']
+        return not any(y in b for y in yasaklilar)
+    return True
+
+
+def scroll_page(page, adim=6):
+    for _ in range(adim):
+        page.evaluate("window.scrollBy(0, 1200)")
+        time.sleep(1)
+
+
+def yeni_context(browser):
+    return browser.new_context(viewport={'width': 1920, 'height': 1080}, user_agent=UA, locale="tr-TR")
+
+
+# ==========================================
+# 1. AMAZON — çalışıyor, dokunulmadı
+# ==========================================
+def amazon_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
+    all_products = []
+    base_url = url or "https://www.amazon.com.tr/s?k=bebek+bezi&i=baby&ref=nb_sb_noss_2"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[Amazon TR] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto("https://www.amazon.com.tr", timeout=45000)
+                time.sleep(2)
+                page.goto(url, timeout=60000)
+                time.sleep(3)
+                scroll_page(page)
+            except Exception as e:
+                log.warning(f"[Amazon] Hata: {e}")
+
+            soup = BeautifulSoup(page.content(), 'html.parser')
+            cards = soup.select('div[data-component-type="s-search-result"]')
+            if not cards:
+                cards = soup.find_all("div", attrs={"data-asin": True})
+            if not cards:
+                debug_snapshot(page, f"Amazon TR_{kategori}")
+
+            eklenen = 0
+            for card in cards:
+                try:
+                    title_el = card.select_one("h2 span") or card.select_one("span.a-text-normal")
+                    if not title_el or len(title_el.text) < 5:
+                        continue
+                    baslik = title_el.text.strip()
+                    if not urun_gecerli_mi(baslik, kategori):
+                        continue
+
+                    link_el = card.select_one("h2 a") or card.select_one(f"a[href*='/{card.get('data-asin')}/']")
+                    price_box = card.select_one("span.a-price:not(.a-text-price)")
+                    if not link_el or not price_box:
+                        continue
+
+                    whole = price_box.select_one(".a-price-whole")
+                    fraction = price_box.select_one(".a-price-fraction")
+                    if not whole:
+                        continue
+
+                    fiyat_metni = f"{whole.text.strip().replace(',', '').replace('.', '')},{fraction.text.strip() if fraction else '00'}"
+                    temiz_fiyat = fiyati_temizle(fiyat_metni)
+                    img_el = card.select_one("img.s-image")
+                    resim = resmi_temizle(img_el, "https://www.amazon.com.tr")
+
+                    if temiz_fiyat:
+                        all_products.append({
+                            "Platform": "Amazon TR", "Kategori": kategori,
+                            "Ürün Adı": baslik, "Fiyat": temiz_fiyat,
+                            "Ürün Linki": "https://www.amazon.com.tr" + link_el.get('href', ''),
+                            "Resim": resim
+                        })
+                        eklenen += 1
+                except Exception:
+                    continue
+            print(f"[Amazon TR] Sayfa {sayfa_no} üzerinden {eklenen} net ürün yakalandı.")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 2. TRENDYOL — HTTP'den Playwright'a geri döndürüldü
+# ==========================================
+def trendyol_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
+    all_products = []
+    base_url = url or "https://www.trendyol.com/bebek-bezi-x-c1363"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?pi={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[Trendyol] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('.product-card', timeout=10000)
+                except Exception:
+                    log.info("[Trendyol] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                # GÜNCEL SELECTOR (2026-09): Trendyol artık kartı a.product-card
+                # olarak render ediyor; kartın kendisi zaten ürün linki.
+                cards = soup.select('.product-card')
+                if not cards:
+                    log.warning("[Trendyol] Hiç kart bulunamadı.")
+                    debug_snapshot(page, f"Trendyol_{kategori}")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        href = card.get('href')
+                        if not href:
+                            continue
+
+                        brand_el = card.select_one('.product-brand')
+                        name_el = card.select_one('.product-name')
+                        title = ((brand_el.text.strip() + " " if brand_el else "") + (name_el.text.strip() if name_el else "")).strip()
+                        if not urun_gecerli_mi(title, kategori):
+                            continue
+
+                        price_box = card.select_one('.product-card-price')
+                        if not price_box:
+                            continue
+                        # İndirimli üründe gerçek fiyat data-testid="price-value" içinde,
+                        # normal üründe .single-price .price-section içinde.
+                        price_el = price_box.select_one('[data-testid="price-value"]') \
+                            or price_box.select_one('.price-section')
+                        if not price_el:
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.text)
+
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.trendyol.com")
+
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "Trendyol", "Kategori": kategori,
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": urljoin("https://www.trendyol.com", href),
+                                "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[Trendyol] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[Trendyol] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 3. N11 — HTTP'den Playwright'a geri döndürüldü
+# ==========================================
+def n11_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
+    all_products = []
+    base_url = url or "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?pg={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[N11] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('.product-item', timeout=10000)
+                except Exception:
+                    log.info("[N11] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                # GÜNCEL SELECTOR (2026-09): a.product-item kartın kendisi, tam URL zaten href'te.
+                cards = soup.select('.product-item')
+                if not cards:
+                    log.warning("[N11] Hiç kart bulunamadı.")
+                    debug_snapshot(page, f"N11_{kategori}")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        href = card.get('href')
+                        title_el = card.select_one('.product-item-title')
+                        price_area = card.select_one('.price-area')
+                        if not href or not title_el or not price_area:
+                            continue
+
+                        title = title_el.text.strip()
+                        if not urun_gecerli_mi(title, kategori):
+                            continue
+
+                        # Güncel fiyat h3.price-currency içinde; .old-price üstü çizili eski fiyat.
+                        price_el = price_area.select_one('h3.price-currency')
+                        if not price_el:
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.text)
+
+                        img_el = card.select_one("img.listing-items-image") or card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.n11.com")
+
+                        if len(title) > 10 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "N11", "Kategori": kategori,
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[N11] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[N11] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 4. HEPSİBURADA (Görünür Tarayıcı - Anti-Datadome)
+# GÜNCEL YÖNTEM: Sayfanın <script> içine gömdüğü tam ürün JSON'unu
+# ('STATE': {"data":{"products":[...]}}) doğrudan ayrıştırıyoruz.
+# Bu, DOM/CSS selector kırılganlığından tamamen bağımsız ve çok daha
+# güvenilir — gerçek "Sepete özel" indirimli fiyatı da net veriyor.
+# ==========================================
+def _dengeli_json_cikar(metin, baslangic_idx):
+    """baslangic_idx'teki '{' karakterinden başlayıp, parantez dengesini
+    takip ederek JSON nesnesinin tamamını (kapanış '}' dahil) döndürür."""
+    derinlik = 0
+    for i in range(baslangic_idx, len(metin)):
+        c = metin[i]
+        if c == '{':
+            derinlik += 1
+        elif c == '}':
+            derinlik -= 1
+            if derinlik == 0:
+                return metin[baslangic_idx:i + 1]
+    return None
+
+
+def hepsiburada_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
+    all_products = []
+    base_url = url or "https://www.hepsiburada.com/bebek-bezleri-c-60001049"
+    with sync_playwright() as p:
+        # NÜKLEER SEÇENEK: headless=False. Datadome görünür açılan
+        # tarayıcıları gerçek insan sanıp geçiriyor.
+        browser = p.chromium.launch(
+            headless=False,
+            slow_mo=50,
+            args=['--disable-blink-features=AutomationControlled', '--start-maximized']
+        )
+        context = browser.new_context(no_viewport=True, user_agent=UA, locale="tr-TR")
+        page = yeni_sayfa_olustur(context)
+
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?sayfa={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[Hepsiburada] Sayfa {sayfa_no} taranıyor (Görünür Tarayıcı ile)...")
+            try:
+                page.goto(url, timeout=60000, wait_until="domcontentloaded")
+                time.sleep(5)
+                scroll_page(page)
+
+                html = page.content()
+                marker = "'STATE': {\"data\":{\"products\":"
+                idx = html.find(marker)
+                eklenen = 0
+
+                if idx == -1:
+                    log.warning("[Hepsiburada] Ürün JSON'u sayfada bulunamadı.")
+                    debug_snapshot(page, f"Hepsiburada_{kategori}")
+                else:
+                    json_start = idx + len("'STATE': ")
+                    json_str = _dengeli_json_cikar(html, json_start)
+                    try:
+                        state = json.loads(json_str)
+                        products = state.get("data", {}).get("products", [])
+                    except Exception as e:
+                        log.warning(f"[Hepsiburada] JSON parse hatası: {e}")
+                        products = []
+                        debug_snapshot(page, f"Hepsiburada_{kategori}")
+
+                    for product in products:
+                        try:
+                            variants = product.get("variantList") or []
+                            if not variants:
+                                continue
+                            variant = variants[0]
+                            title = variant.get("name", "")
+                            if not title or not urun_gecerli_mi(title, kategori):
+                                continue
+
+                            listing = variant.get("listing") or {}
+                            price_info = listing.get("priceInfo") or {}
+                            campaign = listing.get("campaignPriceInfo")
+                            # "Sepete özel" gibi bir kampanya fiyatı varsa (genelde
+                            # daha düşük ve gerçek satış fiyatı) onu, yoksa normal
+                            # listeleme fiyatını kullan.
+                            if campaign and campaign.get("discountedPrice"):
+                                fiyat_deger = campaign["discountedPrice"]
+                            else:
+                                fiyat_deger = price_info.get("price")
+                            if fiyat_deger is None:
+                                continue
+                            temiz_fiyat = f"{fiyat_deger:.2f}".replace('.', ',') + " TL"
+
+                            href = urljoin("https://www.hepsiburada.com", variant.get("url", ""))
+
+                            resim = ""
+                            images = product.get("images") or []
+                            if images:
+                                resim = images[0].get("link", "").replace("{size}", "240x240")
+
+                            if len(title) > 5:
+                                all_products.append({
+                                    "Platform": "Hepsiburada", "Kategori": kategori,
+                                    "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                    "Ürün Linki": href, "Resim": resim
+                                })
+                                eklenen += 1
+                        except Exception:
+                            continue
+
+                    if eklenen == 0:
+                        debug_snapshot(page, f"Hepsiburada_{kategori}")
+
+                print(f"[Hepsiburada] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[Hepsiburada] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+# ==========================================
+# 5. EBEBEK — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
+# ==========================================
+def ebebek_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
+    all_products = []
+    base_url = url or "https://www.e-bebek.com/bebek-bezleri-c10111"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[eBebek] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('div.product-item', timeout=10000)
+                except Exception:
+                    log.info("[eBebek] Selector zaman aşımına uğradı.")
+                scroll_page(page, adim=12)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 48/48)
+                cards = soup.select('div.product-item')
+                if not cards:
+                    log.warning("[eBebek] Hiç kart bulunamadı.")
+                    debug_snapshot(page, f"eBebek_{kategori}")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        a = card.select_one('a.product-item-anchor')
+                        h2 = card.select_one('h2.product-item__brand')
+                        price_box = card.select_one('div.price-box.price-box--list')
+                        if not a or not h2 or not price_box:
+                            continue
+                        title = h2.get_text(' ', strip=True)
+                        if not urun_gecerli_mi(title, kategori):
+                            continue
+                        # NOT: eBebek'te 3 farklı fiyat katmanı olabilir:
+                        # 1) .cart-price .price -> "Sepette" fiyatı (varsa en düşük, gerçek satış fiyatı)
+                        # 2) .discounted-price strong -> siteye özel indirimli fiyat
+                        # 3) .old-price -> üstü çizili orijinal fiyat (indirim yoksa asıl fiyat budur)
+                        price_el = (price_box.select_one('.cart-price .price')
+                                    or price_box.select_one('.discounted-price strong')
+                                    or price_box.select_one('.old-price'))
+                        if not price_el:
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.get_text(' ', strip=True))
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.e-bebek.com")
+                        href = urljoin("https://www.e-bebek.com", a.get('href', ''))
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "eBebek", "Kategori": kategori,
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                if eklenen == 0:
+                    debug_snapshot(page, f"eBebek_{kategori}")
+                else:
+                    debug_snapshot(page, f"eBebek_basarili_{kategori}")
+                print(f"[eBebek] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[eBebek] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 6. PAZARAMA — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
+# ==========================================
+def pazarama_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
+    all_products = []
+    base_url = url or "https://www.pazarama.com/bebek-bezi-k-K01057"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[Pazarama] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('div.product-card', timeout=10000)
+                except Exception:
+                    log.info("[Pazarama] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 60/60)
+                cards = soup.select('div.product-card')
+                if not cards:
+                    log.warning("[Pazarama] Hiç kart bulunamadı.")
+                    debug_snapshot(page, f"Pazarama_{kategori}")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        h2 = card.select_one('h2')
+                        price_box = card.select_one('.product-card__price')
+                        a = card.select_one('a[href]')
+                        if not h2 or not price_box or not a:
+                            continue
+                        title = h2.get_text(strip=True)
+                        if not urun_gecerli_mi(title, kategori):
+                            continue
+                        # "Sepette" fiyatı varsa gerçek satış fiyatı odur;
+                        # yoksa üstteki <p> etiketindeki fiyatı kullan.
+                        sepette_label = price_box.find('span', string=lambda s: s and 'Sepette' in s)
+                        price_el = sepette_label.find_next_sibling('div') if sepette_label else None
+                        if not price_el:
+                            price_el = price_box.find('p')
+                        if not price_el:
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.get_text(strip=True))
+                        img_el = card.select_one("img")
+                        resim = resmi_temizle(img_el, "https://www.pazarama.com")
+                        href = urljoin("https://www.pazarama.com", a.get('href', ''))
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "Pazarama", "Kategori": kategori,
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                if eklenen == 0:
+                    debug_snapshot(page, f"Pazarama_{kategori}")
+                print(f"[Pazarama] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[Pazarama] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 7. İDEFİX — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
+# NOT: idefix esasen kitap/kırtasiye odaklı; bebek bezi stoku çok sınırlı
+# veya hiç olmayabilir. 0 ürün gelmesi burada selector hatası olmayabilir.
+# ==========================================
+def idefix_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
+    all_products = []
+    base_url = url or "https://www.idefix.com/bebek-bezleri-c-880181288"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}?page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[idefix] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('h3.line-clamp-2', timeout=10000)
+                except Exception:
+                    log.info("[idefix] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 24/24)
+                # idefix tamamen dinamik/utility CSS class'ları kullanıyor,
+                # sabit bir "kart" class'ı yok. Bu yüzden başlangıç noktası
+                # olarak ürün başlığını (h3.line-clamp-2) alıp, ondan yukarı
+                # doğru gerçek kart kutusunu (group+cursor-pointer div) buluyoruz.
+                titles = soup.select('h3.line-clamp-2')
+                if not titles:
+                    log.warning("[idefix] Hiç kart bulunamadı.")
+                    debug_snapshot(page, f"idefix_{kategori}")
+                eklenen = 0
+                for title_el in titles:
+                    try:
+                        card = title_el.find_parent(
+                            lambda tag: tag.name == 'div' and tag.has_attr('class')
+                            and 'group' in tag['class'] and 'cursor-pointer' in tag['class']
+                        )
+                        if not card:
+                            continue
+                        a = card.find('a', href=True)
+                        price_span = card.select_one('span.lg\\:text-title-sm')
+                        if not a or not price_span:
+                            continue
+                        title = title_el.get_text(' ', strip=True)
+                        if not urun_gecerli_mi(title, kategori):
+                            continue
+                        # price_span sadece kuruş kısmını içerebilir (örn. "00"),
+                        # tam fiyat parent'ında ("819,00TL" gibi) birlikte duruyor.
+                        temiz_fiyat = fiyati_temizle(price_span.parent.get_text(strip=True))
+                        img_el = card.select_one('img[src^="https"]')
+                        resim = resmi_temizle(img_el, "https://www.idefix.com")
+                        href = urljoin("https://www.idefix.com", a.get('href', ''))
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "idefix", "Kategori": kategori,
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[idefix] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[idefix] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+# ==========================================
+# 8. PTTAVM — İLK TASLAK (doğrulanmadı, debug ile netleştirilecek)
+# ==========================================
+def pttavm_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
+    all_products = []
+    base_url = url or "https://www.pttavm.com/arama?q=bebek+bezi"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True, slow_mo=50)
+        context = yeni_context(browser)
+        page = yeni_sayfa_olustur(context)
+        for sayfa_no in range(1, max_sayfa + 1):
+            url = f"{base_url}&page={sayfa_no}" if sayfa_no > 1 else base_url
+            print(f"\n[PTTAVM] Sayfa {sayfa_no} taranıyor...")
+            try:
+                page.goto(url, timeout=60000)
+                try:
+                    page.wait_for_selector('article.article__i36EQ', timeout=10000)
+                except Exception:
+                    log.info("[PTTAVM] Selector zaman aşımına uğradı.")
+                scroll_page(page)
+                soup = BeautifulSoup(page.content(), 'html.parser')
+                # GÜNCEL SELECTOR (2026-09, test edilip doğrulandı: 48/48)
+                # NOT: Bu class isimleri CSS-Modules hash'i içeriyor
+                # (örn. __i36EQ) — PTTAVM yeni bir build yayınlarsa bu hash
+                # değişebilir ve selector'lar tekrar kırılabilir.
+                cards = soup.select('article.article__i36EQ')
+                if not cards:
+                    log.warning("[PTTAVM] Hiç kart bulunamadı.")
+                    debug_snapshot(page, f"PTTAVM_{kategori}")
+                eklenen = 0
+                for card in cards:
+                    try:
+                        a = card.select_one('a.card__dfYph')
+                        title_el = card.select_one('h2.name__yWPWa')
+                        if not a or not title_el:
+                            continue
+                        title = title_el.get_text(strip=True)
+                        if not urun_gecerli_mi(title, kategori):
+                            continue
+                        # İndirimli üründe gerçek fiyat specialPriceValue içinde,
+                        # değilse priceRow'un tamamı tek fiyattır.
+                        price_el = card.select_one('div.specialPriceValue__HPhRC') \
+                            or card.select_one('div.priceRow__PGsNE')
+                        if not price_el:
+                            continue
+                        temiz_fiyat = fiyati_temizle(price_el.get_text(' ', strip=True))
+                        # Rozet/badge resmiyle karışmasın diye ürün görselini
+                        # figure.imageWrapper içinden alıyoruz.
+                        fig = card.select_one('figure.imageWrapper__R7Rwz')
+                        img_el = fig.select_one('img') if fig else card.select_one('img')
+                        resim = resmi_temizle(img_el, "https://www.pttavm.com")
+                        href = urljoin("https://www.pttavm.com", a.get('href', ''))
+                        if len(title) > 5 and temiz_fiyat:
+                            all_products.append({
+                                "Platform": "PTTAVM", "Kategori": kategori,
+                                "Ürün Adı": title, "Fiyat": temiz_fiyat,
+                                "Ürün Linki": href, "Resim": resim
+                            })
+                            eklenen += 1
+                    except Exception:
+                        continue
+                print(f"[PTTAVM] Sayfa {sayfa_no} üzerinden {eklenen} ürün yakalandı.")
+            except Exception as e:
+                log.warning(f"[PTTAVM] Sayfa hatası: {e}")
+        browser.close()
+    return all_products
+
+
+def save_to_db(all_products):
+    if not all_products:
+        print("❌ Kaydedilecek ürün bulunamadı.")
+        return
+    try:
+        conn = psycopg2.connect(SUPABASE_DB_URL)
+        cur = conn.cursor()
+        eklenen = 0
+        for urun in all_products:
+            try:
+                query = """
+                    INSERT INTO urunler (platform, kategori, urun_adi, fiyat, urun_linki, resim_url)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (urun_linki)
+                    DO UPDATE SET fiyat = EXCLUDED.fiyat, urun_adi = EXCLUDED.urun_adi, resim_url = EXCLUDED.resim_url;
+                """
+                cur.execute(query, (urun["Platform"], urun["Kategori"], urun["Ürün Adı"], urun["Fiyat"], urun["Ürün Linki"], urun.get("Resim", "")))
+                eklenen += 1
+            except Exception as e:
+                log.warning(f"DB insert hatası ({urun.get('Ürün Linki')}): {e}")
+                conn.rollback()
+        conn.commit()
+        cur.close()
+        conn.close()
+        print(f"\n✅ ZAFER! Toplam {eklenen} ürün başarıyla Supabase'e kaydedildi!")
+    except Exception as e:
+        print(f"❌ Veritabanı bağlantı hatası: {e}")
+
+
+# ==========================================
+# KATEGORİ TANIMLARI
+# Yeni bir kategori eklemek için buraya bir satır eklemek yeterli.
+# url=None olan siteler için henüz doğrulanmış bir kategori sayfası
+# bulunamadı — o kombinasyon otomatik atlanır, hata vermez.
+# ==========================================
+KATEGORILER = {
+    "Bebek Bezi": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+bezi&i=baby&ref=nb_sb_noss_2",
+        "trendyol": "https://www.trendyol.com/bebek-bezi-x-c1363",
+        "n11": "https://www.n11.com/bebek-bezi-ve-islak-mendil/bebek-bezi",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-bezleri-c-60001049",
+        "ebebek": "https://www.e-bebek.com/bebek-bezleri-c10111",
+        "pazarama": "https://www.pazarama.com/bebek-bezi-k-K01057",
+        "idefix": "https://www.idefix.com/bebek-bezleri-c-880181288",
+        "pttavm": "https://www.pttavm.com/arama?q=bebek+bezi",
+    },
+    "Islak Mendil": {
+        # Trendyol, N11, eBebek: web aramasıyla dogrulanmış gerçek kategori URL'leri.
+        "amazon": "https://www.amazon.com.tr/s?k=islak+mendil&i=baby&ref=nb_sb_noss_2",
+        "trendyol": "https://www.trendyol.com/islak-mendil-x-c101411",
+        "n11": "https://www.n11.com/bebek-bezi-ve-islak-mendil/islak-mendil-havlu",
+        # Hepsiburada: URL kullanıcı tarafından doğrulandı ama site Akamai ile
+        # kalıcı olarak bloklu (bkz. önceki tarama) — bu yüzden None bırakıldı.
+        # Gerçek URL: https://www.hepsiburada.com/islak-mendiller-c-301175
+        "hepsiburada": None,
+        "ebebek": "https://www.e-bebek.com/islak-mendil-c10115",
+        "pazarama": "https://www.pazarama.com/islak-mendil-havlu-k-K01058",
+        "idefix": "https://www.idefix.com/bebek-islak-mendilleri-c-880155320",
+        "pttavm": "https://www.pttavm.com/arama?q=islak+mendil",  # arama tabanlı, muhtemelen çalışır
+    },
+    "Biberon": {
+        "amazon": "https://www.amazon.com.tr/s?k=biberon&i=baby&ref=nb_sb_noss_2",
+        "trendyol": "https://www.trendyol.com/biberon-emzik-x-c103755",
+        "n11": "https://www.n11.com/biberon-ve-aksesuarlari/bebek-biberon",
+        "hepsiburada": "https://www.hepsiburada.com/biberonlar-c-301172",  # Akamai engeli - calismasi beklenmiyor ama URL kayitli
+        "ebebek": "https://www.e-bebek.com/biberon-c4025",
+        "pazarama": "https://www.pazarama.com/biberon-ve-aksesuarlari-k-K01149",
+        "idefix": None,  # idefix'te ayri biberon kategorisi bulunamadi
+        "pttavm": "https://www.pttavm.com/biberon-c-1260",
+    },
+    "Emzik": {
+        "amazon": "https://www.amazon.com.tr/s?k=emzik&i=baby&ref=nb_sb_noss_2",
+        "trendyol": "https://www.trendyol.com/emzik-x-c165850",
+        "n11": "https://www.n11.com/beslenme-ve-mama-sandalyesi/emzik-ve-aksesuarlari",
+        "hepsiburada": "https://www.hepsiburada.com/yalanci-emzik-c-297822",
+        "ebebek": "https://www.e-bebek.com/silikon-emzik-c3804",
+        "pazarama": "https://www.pazarama.com/yalanci-emzik-ve-aksesuarlari-k-K01157",
+        "idefix": None,
+        "pttavm": "https://www.pttavm.com/emzik-ve-aksesuarlari-c-1258",
+    },
+    "Bebek Maması": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+mamasi&i=baby&ref=nb_sb_noss_2",
+        "trendyol": "https://www.trendyol.com/bebek-mamalari-x-c103753",
+        "n11": "https://www.n11.com/beslenme-ve-mama-sandalyesi/bebek-mamasi",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-mamalari-c-301163",
+        "ebebek": "https://www.e-bebek.com/bebek-mamalari-c3846",
+        "pazarama": "https://www.pazarama.com/bebek-mamalari-k-K01203",
+        "idefix": None,
+        "pttavm": "https://www.pttavm.com/arama?q=bebek+mamasi",  # pttavm'de ayri kategori bulunamadi, arama kullanildi
+    },
+    "Bebek Arabası": {
+        "amazon": "https://www.amazon.com.tr/Pusetler-ve-Bebek-Arabalari/b?ie=UTF8&node=12793218031",
+        "trendyol": "https://www.trendyol.com/bebek-arabasi-puset-x-c103735",
+        "n11": "https://www.n11.com/bebek-arabalari",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-arabasi-pusetleri-c-305668",
+        "ebebek": "https://www.e-bebek.com/bebek-arabalari-c10110",
+        "pazarama": "https://www.pazarama.com/bebek-arabalari-ve-tasima-urunleri-k-K01017",
+        "idefix": "https://www.idefix.com/bebek-arabalari-c-1107122920",
+        "pttavm": "https://www.pttavm.com/travel-sistem-bebek-arabasi-c-4146",  # pttavm birden fazla alt tur var, en genel olani secildi
+    },
+    "Oto Koltuğu": {
+        "amazon": "https://www.amazon.com.tr/s?k=oto+koltuğu&i=baby",
+        "trendyol": "https://www.trendyol.com/oto-koltugu-x-c103738",
+        "n11": "https://www.n11.com/oto-koltugu-ve-ana-kucagi/oto-koltugu",
+        "hepsiburada": "https://www.hepsiburada.com/ana-kucagi-oto-koltuklari-c-305661",  # HB'de ana kucagi ile birlesik
+        "ebebek": "https://www.e-bebek.com/bebek-oto-koltugu-c4219",
+        "pazarama": "https://www.pazarama.com/oto-koltugu-ve-ana-kucagi-k-K01187",  # Pazarama'da ana kucagi ile birlesik
+        "idefix": "https://www.idefix.com/oto-koltugu-ve-aksesuarlari-c-1107456210",
+        "pttavm": None,
+    },
+    "Ana Kucağı": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+ana+kucağı&i=baby",
+        "trendyol": "https://www.trendyol.com/ana-kucagi-x-c103731",
+        "n11": "https://www.n11.com/oto-koltugu-ve-ana-kucagi/ev-tipi-ana-kucagi",
+        "hepsiburada": "https://www.hepsiburada.com/ana-kucagi-oto-koltuklari-c-305661",  # HB'de oto koltugu ile birlesik
+        "ebebek": "https://www.e-bebek.com/ana-kucagi-c4550",
+        "pazarama": "https://www.pazarama.com/oto-koltugu-ve-ana-kucagi-k-K01187",  # Pazarama'da oto koltugu ile birlesik
+        "idefix": "https://www.idefix.com/ana-kucagi-c-110710079",
+        "pttavm": None,
+    },
+    "Kanguru & Portbebe": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+kanguru&i=baby",
+        "trendyol": "https://www.trendyol.com/portbebe-kanguru-sling-x-c103740",
+        "n11": "https://www.n11.com/oto-koltugu-ve-ana-kucagi/kanguru",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-tasima-c-80383003",
+        "ebebek": "https://www.e-bebek.com/bebek-tasima-gerecleri-c10114",
+        "pazarama": None,  # Pazarama'da ayri kategori bulunamadi
+        "idefix": "https://www.idefix.com/kanguru-portbebe-c-1107113920",
+        "pttavm": None,
+    },
+    "Mama Sandalyesi": {
+        "amazon": "https://www.amazon.com.tr/s?k=mama+sandalyesi&i=baby",
+        "trendyol": "https://www.trendyol.com/mama-sandalyesi-x-c1111",
+        "n11": "https://www.n11.com/beslenme-ve-mama-sandalyesi/mama-sandalyesi",
+        "hepsiburada": "https://www.hepsiburada.com/mama-sandalyeleri-c-301132",
+        "ebebek": "https://www.e-bebek.com/mama-sandalyesi-c3818",
+        "pazarama": "https://www.pazarama.com/mama-sandalyesi-ve-aksesuarlari-k-K01184",
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Yürüteç": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+yürüteç&i=baby",
+        "trendyol": "https://www.trendyol.com/yurutec-x-c103741",
+        "n11": "https://www.n11.com/yurutec-ve-yurume-yardimcilari/yurutec",
+        "hepsiburada": None,
+        "ebebek": "https://www.e-bebek.com/yurutec-c3734",
+        "pazarama": "https://www.pazarama.com/yurutec-ve-yurume-yardimcilari-k-K01193",
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Bebek Giyim": {
+        "amazon": "https://www.amazon.com.tr/s?k=yenidoğan+bebek+kıyafetleri&i=baby",
+        "trendyol": None,  # TODO: genel kategori linki dogrulanmadi
+        "n11": "https://www.n11.com/bebek-giyim/erkek-bebek",  # N11'de cinsiyete gore ayrilmis, tek link secildi
+        "hepsiburada": "https://www.hepsiburada.com/bebek-kiyafetleri-giyim-c-60007347",
+        "ebebek": "https://www.e-bebek.com/yenidogan-bebek-giyim-c3742",
+        "pazarama": "https://www.pazarama.com/bebek-giyim-k-K01059",
+        "idefix": None,
+        "pttavm": "https://www.pttavm.com/bebek-giyim-c-1178",
+    },
+    "Bebek Banyo Ürünleri": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+banyo+ürünleri&i=baby",
+        "trendyol": None,
+        "n11": None,
+        "hepsiburada": "https://www.hepsiburada.com/bebek-banyo-c-80383032",
+        "ebebek": "https://www.e-bebek.com/bebek-banyo-urunleri-c4042",
+        "pazarama": None,
+        "idefix": "https://www.idefix.com/bebek-dus-banyo-c-1101237920",
+        "pttavm": None,
+    },
+    "Bebek Bakım Çantası": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+bakim+cantasi&i=baby",
+        "trendyol": "https://www.trendyol.com/bebek-bakim-cantasi-x-c1014",
+        "n11": None,
+        "hepsiburada": "https://www.hepsiburada.com/bebek-bakim-cantalari-c-301143",
+        "ebebek": "https://www.e-bebek.com/cantalar-c10102",
+        "pazarama": None,
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Buhar Makinesi": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/bebek-buhar-makinesi-y-s3612",
+        "n11": None,
+        "hepsiburada": "https://www.hepsiburada.com/buhar-makineleri-c-303171",
+        "ebebek": None,
+        "pazarama": None,
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Göğüs Pompası": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+süt+pompası&i=baby",
+        "trendyol": "https://www.trendyol.com/gogus-pompalari-x-c103760",
+        "n11": "https://www.n11.com/emzirme-urunleri/gogus-pompalari",
+        "hepsiburada": "https://www.hepsiburada.com/emzirme-urunleri-c-23020380",  # HB'de tum emzirme urunleri birlesik
+        "ebebek": "https://www.e-bebek.com/sut-pompasi-c3789",
+        "pazarama": "https://www.pazarama.com/gogus-pompasi-k-K01164",
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Göğüs Pedi": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/gogus-pedleri-koruyucular-x-c103759",
+        "n11": "https://www.n11.com/emzirme-urunleri/gogus-pedleri-koruyucular",
+        "hepsiburada": None,
+        "ebebek": "https://www.e-bebek.com/gogus-pedi-c3942",
+        "pazarama": "https://www.pazarama.com/gogus-pedi-ve-koruyuculari-k-K01163",
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Göğüs Kremi": {
+        "amazon": "https://www.amazon.com.tr/s?k=göğüs+kremi&i=baby",
+        "trendyol": "https://www.trendyol.com/gogus-ucu-kremi-x-c103780",
+        "n11": "https://www.n11.com/emzirme-urunleri/gogus-kremi",
+        "hepsiburada": None,
+        "ebebek": "https://www.e-bebek.com/gogus-kremi-c3944",
+        "pazarama": "https://www.pazarama.com/gogus-ucu-kremi-k-K01165",
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Süt Saklama Poşeti": {
+        "amazon": None,
+        "trendyol": None,
+        "n11": "https://www.n11.com/emzirme-urunleri/sut-saklama-poset-ve-kaplari",
+        "hepsiburada": None,
+        "ebebek": "https://www.e-bebek.com/sut-saklama-poseti-ve-kabi-c3796",
+        "pazarama": "https://www.pazarama.com/sut-saklama-poseti-kabi-k-K01167",
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Emzirme Önlüğü": {
+        "amazon": "https://www.amazon.com.tr/s?k=emzirme+önlükleri&i=baby",
+        "trendyol": "https://www.trendyol.com/emzirme-onlugu-y-s5605",
+        "n11": "https://www.n11.com/emzirme-urunleri/emzirme-yastigi-ve-ortuleri",
+        "hepsiburada": None,
+        "ebebek": "https://www.e-bebek.com/emzirme-onlugu-c3955",
+        "pazarama": "https://www.pazarama.com/emzirme-onlugu-ortusu-k-K01160",
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Mama Hazırlayıcı": {
+        "amazon": None,
+        "trendyol": None,
+        "n11": None,
+        "hepsiburada": "https://www.hepsiburada.com/mama-hazirlayicilar-c-302888",
+        "ebebek": "https://www.e-bebek.com/bebek-mama-hazirlayici-c4267",
+        "pazarama": "https://www.pazarama.com/mama-hazirlayici-k-K01154",
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Biberon Isıtıcı & Sterilizatör": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/biberon-isitici-sterilizator-x-c103757",
+        "n11": "https://www.n11.com/biberon-ve-aksesuarlari/biberon-isiticilari",
+        "hepsiburada": "https://www.hepsiburada.com/biberon-isiticilar-sterilizatorler-c-301166",
+        "ebebek": "https://www.e-bebek.com/biberon-isitici-c4021",
+        "pazarama": "https://www.pazarama.com/biberon-isitici-ve-sterilizator-k-K01148",
+        "idefix": None,
+        "pttavm": "https://www.pttavm.com/biberon-mama-isitici-c-1261",
+    },
+    "Bebek Termosu & Alıştırma Bardağı": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/alistirma-bardaklari-x-c103756",
+        "n11": "https://www.n11.com/biberon-ve-aksesuarlari/termos-ve-alistirma-bardaklari",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-termosu-kap-c-10413",
+        "ebebek": "https://www.e-bebek.com/termal-saklama-termosu-c3782",
+        "pazarama": "https://www.pazarama.com/bebek-termosu-k-K01147",
+        "idefix": "https://www.idefix.com/bebek-matara-suluk-c-110210643",
+        "pttavm": None,
+    },
+    "Mama Önlüğü & Kaşık": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/mama-onlugu-x-c103765",
+        "n11": "https://www.n11.com/beslenme-ve-mama-sandalyesi/mama-tabagi-ve-kasik",
+        "hepsiburada": None,
+        "ebebek": "https://www.e-bebek.com/bebek-onlukleri-c4196",
+        "pazarama": "https://www.pazarama.com/mama-onlugu-k-K01155",
+        "idefix": "https://www.idefix.com/bebek-mama-onlukleri-c-110210928",
+        "pttavm": None,
+    },
+    "Bebek Telsizi & Kamera": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+telsizi&i=baby",
+        "trendyol": None,
+        "n11": "https://www.n11.com/bebek-guvenlik/bebek-telsizi-ve-kamera",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-telsizi-c-301154",
+        "ebebek": "https://www.e-bebek.com/kamerali-bebek-telsizi-c3885",
+        "pazarama": "https://www.pazarama.com/bebek-telsizi-k-K01092",
+        "idefix": "https://www.idefix.com/bebek-telsizi-ve-kamerasi-c-1103516940",
+        "pttavm": None,
+    },
+    "Beşik & Park Yatak": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/besik-x-c104511",
+        "n11": "https://www.n11.com/bebek-odasi-ve-park-yatak/besik-park-yatak-salincak",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-besikleri-c-60002070",
+        "ebebek": "https://www.e-bebek.com/besikler-c7050",
+        "pazarama": "https://www.pazarama.com/besik-park-yatak-salincak-k-K01134",
+        "idefix": "https://www.idefix.com/bebek-besik-c-110510238",
+        "pttavm": "https://www.pttavm.com/bebek-besikleri-c-1269",
+    },
+    "Bebek Yatakları": {
+        "amazon": "https://www.amazon.com.tr/s?k=bebek+yatakları&i=baby",
+        "trendyol": "https://www.trendyol.com/bebek-yatak-x-c144368",
+        "n11": None,
+        "hepsiburada": "https://www.hepsiburada.com/bebek-yataklari-c-23011486",
+        "ebebek": "https://www.e-bebek.com/yataklar-c7100",
+        "pazarama": None,
+        "idefix": None,
+        "pttavm": None,
+    },
+    "Bebek Odası Mobilyaları": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/bebek-odasi-takimi-x-c105325",
+        "n11": "https://www.n11.com/bebek-odasi-ve-park-yatak/bebek-odasi-mobilya",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-odasi-mobilyalari-c-23012961",
+        "ebebek": "https://www.e-bebek.com/dolaplar-c7060",  # eBebek'te birden fazla mobilya alt kategorisi var, dolaplar temsili secildi
+        "pazarama": "https://www.pazarama.com/bebek-odasi-mobilya-k-K01114",
+        "idefix": "https://www.idefix.com/bebek-odasi-mobilya-c-1105105550",
+        "pttavm": "https://www.pttavm.com/bebek-mobilyasi-c-1266",
+    },
+    "Bebek Odası Tekstili": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/bebek-cocuk-nevresim-takimi-x-c105583",
+        "n11": "https://www.n11.com/bebek-odasi-ve-park-yatak/bebek-odasi-tekstil",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-tekstili-c-80381044",
+        "ebebek": None,
+        "pazarama": "https://www.pazarama.com/bebek-odasi-tekstil-k-K01121",
+        "idefix": "https://www.idefix.com/bebek-koruyucu-tekstil-c-110375728",
+        "pttavm": None,
+    },
+    "Ev & Bebek Güvenlik Ürünleri": {
+        "amazon": None,
+        "trendyol": None,
+        "n11": "https://www.n11.com/bebek-guvenlik/ev-guvenlik-urunleri",
+        "hepsiburada": "https://www.hepsiburada.com/evde-guvenlik-c-80381020",
+        "ebebek": "https://www.e-bebek.com/bebek-guvenlik-kapisi-c4341",  # eBebek'te birden fazla guvenlik alt kategorisi var, temsili secildi
+        "pazarama": "https://www.pazarama.com/ev-guvenlik-urunleri-k-K01093",
+        "idefix": "https://www.idefix.com/bebek-emniyet-kilitleri-ve-muhafazalari-c-110310424",
+        "pttavm": None,
+    },
+    "Alt Açma Örtüsü": {
+        "amazon": "https://www.amazon.com.tr/s?k=alt+acma+ortusu&i=baby",
+        "trendyol": None,
+        "n11": "https://www.n11.com/bebek-bezi-ve-islak-mendil/alt-acma-pedi-ve-minderi",
+        "hepsiburada": "https://www.hepsiburada.com/bebek-alt-acma-setleri-c-23020713",
+        "ebebek": "https://www.e-bebek.com/bebek-alt-acma-ortusu-c4521",
+        "pazarama": "https://www.pazarama.com/alt-acma-ortusu-k-K01056",
+        "idefix": None,  # idefix'te bez ile birlesik (bebek-bezi-ve-alt-acma), ayri deger uretmez
+        "pttavm": "https://www.pttavm.com/alt-acma-pedi-c-1176",
+    },
+    "Bebek Şampuanı": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/bebek-sampuani-x-c105562",
+        "n11": None,
+        "hepsiburada": "https://www.hepsiburada.com/bebek-sampuanlari-c-301173",
+        "ebebek": None,
+        "pazarama": None,
+        "idefix": "https://www.idefix.com/bebek-sac-bakim-c-1101567270",
+        "pttavm": None,
+    },
+    "Bebek Krem & Yağları": {
+        "amazon": None,
+        "trendyol": "https://www.trendyol.com/bebek-krem-yaglar-x-c103769",
+        "n11": None,
+        "hepsiburada": "https://www.hepsiburada.com/bebek-pisik-kremi-yaglari-c-23021010",
+        "ebebek": None,
+        "pazarama": None,
+        "idefix": "https://www.idefix.com/bebek-cilt-bakimi-c-1101837660",
+        "pttavm": None,
+    },
+    "Ateş Ölçer": {
+        "amazon": None,
+        "trendyol": None,
+        "n11": None,
+        "hepsiburada": "https://www.hepsiburada.com/ates-olcerler-c-80483224",
+        "ebebek": None,
+        "pazarama": None,
+        "idefix": "https://www.idefix.com/bebek-saglik-c-1101102720",
+        "pttavm": None,
+    },
+    # Sırada: Anne Bakım Ürünleri, Oyuncaklar, Hamile Giyim
+    # ve idefix'in bakım/temizlik alt kategorileri gibi henüz eklenmemiş kalemler.
+}
+
+SITE_FONKSIYONLARI = {
+    "amazon": amazon_tara,
+    "trendyol": trendyol_tara,
+    "n11": n11_tara,
+    "hepsiburada": hepsiburada_tara,
+    "ebebek": ebebek_tara,
+    "pazarama": pazarama_tara,
+    "idefix": idefix_tara,
+    "pttavm": pttavm_tara,
+}
+
+if __name__ == "__main__":
+    print("🚀 Bebiio Kusursuz Fiyat Motoru Başlatıldı!\n")
+    try:
+        toplam_urunler = []
+        for kategori_adi, site_urlleri in KATEGORILER.items():
+            print(f"\n{'='*50}\n📂 KATEGORİ: {kategori_adi}\n{'='*50}")
+            for site_adi, url in site_urlleri.items():
+                if url is None:
+                    print(f"⏭️  {site_adi}: '{kategori_adi}' için doğrulanmış URL yok, atlanıyor.")
+                    continue
+                fonksiyon = SITE_FONKSIYONLARI[site_adi]
+                try:
+                    toplam_urunler.extend(fonksiyon(1, url=url, kategori=kategori_adi))
+                except Exception as e:
+                    print(f"❌ {site_adi} / {kategori_adi} taramasında hata: {e}")
+
+        print(f"\n🎉 Tarama tamamlandı! Toplam {len(toplam_urunler)} ürün yakalandı. DB'ye yazılıyor...")
+        save_to_db(toplam_urunler)
+        print("✅ Görev başarıyla tamamlandı! Motor kapanıyor.")
+    except Exception as e:
+        print(f"❌ Motor çalışırken hata oluştu: {e}")
