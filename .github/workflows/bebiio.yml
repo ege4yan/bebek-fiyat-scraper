@@ -10,13 +10,7 @@ on:
 jobs:
   bebiio-tarama:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false  # bir site hata verse bile digerleri calismaya devam etsin
-      matrix:
-        # Hepsiburada bilerek matrix'e dahil edilmedi: GitHub Actions'ta
-        # (X-server olmadigi icin) hep hata veriyor, bosuna bir job harcamasin.
-        # Yerelde tam taramak istersen: python scraper.py hepsi
-        site: [amazon, trendyol, n11, ebebek, pazarama, idefix, pttavm]
+    timeout-minutes: 60  # sirali mod uzun surebiliyor (~45dk), varsayilan 6 saatlik sinira takilmasin diye makul bir ust sinir
     steps:
       - name: Repoyu Klonla
         uses: actions/checkout@v3
@@ -32,16 +26,16 @@ jobs:
           pip install -r requirements.txt
           playwright install --with-deps chromium
 
-      - name: 🚀 ${{ matrix.site }} Taranıyor
+      - name: 🚀 Motoru Ateşle (tüm siteler sırayla)
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python scraper.py ${{ matrix.site }}
+        run: python scraper.py
 
       - name: 🔍 Debug Görüntülerini Yükle
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: debug-output-${{ matrix.site }}
+          name: debug-output
           path: debug_output/
           if-no-files-found: ignore
           retention-days: 3
