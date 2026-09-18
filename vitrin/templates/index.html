@@ -201,6 +201,12 @@
             </span>
         </div>
 
+        <div id="kategoriVitrinAlani" class="hidden mb-8 md:mb-12"></div>
+
+        <div id="markaVitrinAlani" class="hidden mb-8 md:mb-12"></div>
+
+        <div id="birimFiyatVitrinAlani" class="hidden mb-8 md:mb-12"></div>
+
         <div id="mantikliSecimAlani" class="hidden mb-6 md:mb-8"></div>
 
         <div class="flex items-center gap-2 mb-4">
@@ -286,6 +292,10 @@
                 </div>
 
                 <div id="modalBirimFiyat" class="text-xs font-bold text-gray-500 bg-white px-4 py-2.5 rounded-xl border border-gray-100 mb-4 text-center sm:text-left"></div>
+
+                <div class="text-[10px] text-brand-purple bg-brand-light px-3 py-2 rounded-lg mb-4 text-center sm:text-left">
+                    🧪 Beta sürüm — fiyat ve stok bilgisi güncel olmayabilir, satın almadan önce mağazada teyit edin.
+                </div>
 
                 <div id="modalAksiyonButonlari" class="flex gap-2 mb-6"></div>
 
@@ -616,6 +626,9 @@
             document.getElementById('istatistikMetni').innerHTML = durumMetni;
             kategoriSekmeleriDoldur();
             markaSecenekleriDoldur();
+            kategoriVitrinDoldur();
+            markaVitrinDoldur();
+            birimFiyatVitrinDoldur();
             mantikliSecimGoster();
             sonGoruntulenenlerGoster();
             filtreUygula(aktifFiltre);
@@ -1295,6 +1308,87 @@
         }
 
         // ===================== EN MANTIKLI SEÇİM (ANA SAYFA) =====================
+        const KATEGORI_IKONLARI = {
+            'Bebek Bezi': '🍼', 'Islak Mendil': '🧻', 'Biberon': '🍼', 'Emzik': '🧸',
+            'Bebek Maması': '🥣', 'Bebek Arabası': '🛒', 'Oto Koltuğu': '🚗', 'Ana Kucağı': '🍼',
+            'Kanguru & Portbebe': '👶', 'Mama Sandalyesi': '🪑', 'Yürüteç': '🚼', 'Bebek Giyim': '👕',
+            'Bebek Banyo Ürünleri': '🛁', 'Bebek Bakım Çantası': '🎒', 'Buhar Makinesi': '💨',
+            'Göğüs Pompası': '🤱', 'Göğüs Pedi': '🩹', 'Göğüs Kremi': '🧴', 'Süt Saklama Poşeti': '🧊',
+            'Emzirme Önlüğü': '🧣', 'Mama Hazırlayıcı': '🍲', 'Biberon Isıtıcı & Sterilizatör': '♨️',
+            'Bebek Termosu & Alıştırma Bardağı': '🥤', 'Mama Önlüğü & Kaşık': '🥄',
+            'Bebek Telsizi & Kamera': '📷', 'Beşik & Park Yatak': '🛏️', 'Bebek Yatakları': '🛏️',
+            'Bebek Odası Mobilyaları': '🪟', 'Bebek Odası Tekstili': '🧵', 'Ev & Bebek Güvenlik Ürünleri': '🔒',
+            'Alt Açma Örtüsü': '🧺', 'Bebek Şampuanı': '🧴', 'Bebek Krem & Yağları': '🧴', 'Ateş Ölçer': '🌡️',
+        };
+
+        function kategoriVitrinDoldur() {
+            const alan = document.getElementById('kategoriVitrinAlani');
+            const kategoriler = [...new Set(gruplanmisUrunler.map(g => g.kategori))];
+            if (kategoriler.length <= 1) { alan.classList.add('hidden'); alan.innerHTML = ''; return; }
+
+            let html = `<h3 class="font-display text-xl md:text-2xl font-semibold text-gray-900 mb-4">📂 Kategoriler</h3>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">`;
+            kategoriler.forEach(k => {
+                const sayi = gruplanmisUrunler.filter(g => g.kategori === k).length;
+                const ikon = KATEGORI_IKONLARI[k] || '📦';
+                html += `
+                    <button onclick="kategoriSec('${k}'); document.getElementById('karsilastirma-alani').scrollIntoView({behavior:'smooth'});" class="bg-white hover:bg-brand-light border border-gray-100 rounded-2xl p-4 flex flex-col items-center gap-1.5 transition-colors text-center">
+                        <span class="text-2xl">${ikon}</span>
+                        <span class="text-[11px] font-bold text-gray-700 leading-tight line-clamp-2">${k}</span>
+                        <span class="text-[10px] text-gray-400 font-bold">${sayi} ürün</span>
+                    </button>`;
+            });
+            html += '</div>';
+            alan.innerHTML = html;
+            alan.classList.remove('hidden');
+        }
+
+        function markaVitrinDoldur() {
+            const alan = document.getElementById('markaVitrinAlani');
+            const sayaclar = {};
+            gruplanmisUrunler.forEach(g => { sayaclar[g.marka] = (sayaclar[g.marka] || 0) + 1; });
+            const topMarkalar = Object.entries(sayaclar).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            if (topMarkalar.length < 3) { alan.classList.add('hidden'); alan.innerHTML = ''; return; }
+
+            let html = `<h3 class="font-display text-xl md:text-2xl font-semibold text-gray-900 mb-4">⭐ Popüler Markalar</h3>
+                <div class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">`;
+            topMarkalar.forEach(([marka, sayi]) => {
+                html += `
+                    <button onclick="document.getElementById('markaFiltre').value='${marka}'; filtreUygula(aktifFiltre); document.getElementById('karsilastirma-alani').scrollIntoView({behavior:'smooth'});" class="shrink-0 bg-white hover:bg-brand-light border border-gray-100 rounded-2xl px-5 py-4 text-center transition-colors min-w-[110px]">
+                        <div class="font-black text-sm text-gray-800">${marka}</div>
+                        <div class="text-[10px] text-gray-400 font-bold mt-0.5">${sayi} ürün</div>
+                    </button>`;
+            });
+            html += '</div>';
+            alan.innerHTML = html;
+            alan.classList.remove('hidden');
+        }
+
+        function birimFiyatVitrinDoldur() {
+            const alan = document.getElementById('birimFiyatVitrinAlani');
+            const adaylar = gruplanmisUrunler.filter(g => birimFiyatHesapla(g) !== null)
+                .slice().sort((a, b) => birimFiyatHesapla(a) - birimFiyatHesapla(b)).slice(0, 10);
+            if (adaylar.length < 3) { alan.classList.add('hidden'); alan.innerHTML = ''; return; }
+
+            let html = `<h3 class="font-display text-xl md:text-2xl font-semibold text-gray-900 mb-4">💰 En Uygun Birim Fiyatlılar</h3>
+                <div class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">`;
+            adaylar.forEach(g => {
+                const bf = birimFiyatHesapla(g);
+                const resimHTML = g.resim
+                    ? `<img src="${g.resim}" loading="lazy" decoding="async" onerror="resimHataIsle(this)" class="w-full h-full object-contain mix-blend-multiply">`
+                    : `<svg class="w-10 h-10 text-gray-200 p-2" fill="currentColor" viewBox="0 0 24 24"><path d="M19 8h-2V6a3 3 0 00-3-3H10a3 3 0 00-3 3v2H5a1 1 0 00-1 1v11a3 3 0 003 3h10a3 3 0 003-3V9a1 1 0 00-1-1zm-4-2h-6V6a1 1 0 011-1h4a1 1 0 011 1v2z"></path></svg>`;
+                html += `
+                    <div onclick="detayAc('${g.grupKodu}')" class="shrink-0 w-36 bg-white rounded-2xl border border-gray-100 p-3 cursor-pointer hover:border-brand-purple/40 transition-colors">
+                        <div class="w-full h-20 flex items-center justify-center mb-2">${resimHTML}</div>
+                        <div class="text-[11px] font-bold text-gray-700 line-clamp-2 leading-tight mb-1">${g.grupIsmi}</div>
+                        <div class="text-xs font-black text-brand-purple">${formatFiyat(bf)}/adet</div>
+                    </div>`;
+            });
+            html += '</div>';
+            alan.innerHTML = html;
+            alan.classList.remove('hidden');
+        }
+
         function mantikliSecimGoster() {
             const adaylar = gruplanmisUrunler.filter(g => birimFiyatHesapla(g) !== null);
             const alan = document.getElementById('mantikliSecimAlani');

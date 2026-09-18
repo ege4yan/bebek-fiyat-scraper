@@ -137,6 +137,16 @@ def amazon_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
                 scroll_page(page)
             except Exception as e:
                 log.warning(f"[Amazon] Hata: {e}")
+                if "Download is starting" in str(e):
+                    # Bu hata genelde gecici - bir kez daha deneyelim
+                    log.info("[Amazon] 'Download is starting' hatasi - tekrar deneniyor...")
+                    time.sleep(random.uniform(3, 6))
+                    try:
+                        page.goto(url, timeout=60000)
+                        time.sleep(3)
+                        scroll_page(page)
+                    except Exception as e2:
+                        log.warning(f"[Amazon] İkinci deneme de başarısız: {e2}")
 
             soup = BeautifulSoup(page.content(), 'html.parser')
             cards = soup.select('div[data-component-type="s-search-result"]')
@@ -1141,7 +1151,7 @@ if __name__ == "__main__":
                 # sorulunca bot korumasi tetiklenebiliyor - kucuk bir bekleme
                 # ekleyip temposunu yatistiriyoruz (hepsi modunda siteler zaten
                 # birbiri ardina degistigi icin dogal bir bosluk oluyor).
-                time.sleep(random.uniform(2, 5) if hedef_site != "hepsi" else 0.5)
+                time.sleep(random.uniform(7, 16) if hedef_site != "hepsi" else 0.5)
                 try:
                     sonuclar = fonksiyon(1, url=url, kategori=kategori_adi)
                     toplam_urunler.extend(sonuclar)
