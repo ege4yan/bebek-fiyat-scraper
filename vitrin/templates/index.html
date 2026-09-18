@@ -438,6 +438,18 @@
             }
             let adet = adetMatch ? parseInt(adetMatch[1]) : '?';
 
+            // KRİTİK DÜZELTME: "70 Adet (2 Paketi)" gibi ifadelerde gerçek miktar
+            // 70 değil 70×2=140'tır. Bunu yakalamazsak, gerçekte 2 kat ürün içeren
+            // bir paket, tekli 70'lik paketle AYNI GRUBA düşüp saçma fiyat
+            // farkları (birbirinin 2 katı fiyatlar aynı üründe gibi) gösterir.
+            let paketMatch = k.match(/\(?\s*(\d{1,3})\s*paket/) || k.match(/(\d{1,3})\s*x\s*\d{1,4}\s*(adet|li)/);
+            if (adet !== '?' && paketMatch) {
+                let paketSayisi = parseInt(paketMatch[1]);
+                if (paketSayisi > 1 && paketSayisi <= 12) { // makul bir ust sinir, yanlis eslesmede asiri carpmayi onler
+                    adet = adet * paketSayisi;
+                }
+            }
+
             // NOT: "Selpak zeytinyağlı" ile "Selpak sade" gibi FARKLI ürünlerin
             // yanlışlıkla aynı grupta (dolayısıyla aynı fiyat karşılaştırmasında)
             // görünmesini engellemek için ürün çeşidini de gruplama anahtarına
