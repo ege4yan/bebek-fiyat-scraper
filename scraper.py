@@ -1109,13 +1109,17 @@ SITE_FONKSIYONLARI = {
 }
 
 if __name__ == "__main__":
-    print("🚀 Bebiio Kusursuz Fiyat Motoru Başlatıldı!\n")
+    import sys
+    # Paralel calisma icin: "python scraper.py trendyol" sadece Trendyol'u tarar
+    # (GitHub Actions matrix ile her site ayni anda ayri bir job'ta calisir,
+    # boylece 45 dk'lik sirali surec ~6-8 dk'ya iner). Argument verilmezse
+    # (veya "hepsi" yazilirsa) eskisi gibi TUM siteler sirayla taranir -
+    # yerel bilgisayarda tek seferde calistirmak icin hala kullanilabilir.
+    hedef_site = sys.argv[1].lower() if len(sys.argv) > 1 else os.environ.get("TARANACAK_SITE", "hepsi").lower()
+
+    print(f"🚀 Bebiio Kusursuz Fiyat Motoru Başlatıldı! (mod: {hedef_site})\n")
     try:
         toplam_urunler = []
-        # Devre kesici: bir site art arda 2 kategoride 0 ürün/hata verirse,
-        # bu çalıştırma boyunca o site tamamen atlanır. Amaç: bot korumasına
-        # yakalanmış (veya X-server gibi kalıcı bir sorunu olan) bir siteyi
-        # 30+ kez art arda dövüp zaman/IP itibarı israf etmemek.
         ARDISIK_SIFIR_ESIGI = 2
         site_ardisik_sifir = {s: 0 for s in SITE_FONKSIYONLARI}
         site_devre_disi = set()
@@ -1123,6 +1127,8 @@ if __name__ == "__main__":
         for kategori_adi, site_urlleri in KATEGORILER.items():
             print(f"\n{'='*50}\n📂 KATEGORİ: {kategori_adi}\n{'='*50}")
             for site_adi, url in site_urlleri.items():
+                if hedef_site != "hepsi" and site_adi != hedef_site:
+                    continue  # bu job'un ilgilenmedigi site, hic dokunma
                 if url is None:
                     print(f"⏭️  {site_adi}: '{kategori_adi}' için doğrulanmış URL yok, atlanıyor.")
                     continue
@@ -1131,11 +1137,11 @@ if __name__ == "__main__":
                     continue
 
                 fonksiyon = SITE_FONKSIYONLARI[site_adi]
-                # 34 kategoriyi ayni siteye art arda hizlica sormak, bot korumasini
-                # gitgide daha sert tetikliyor (Trendyol/eBebek/Amazon zamanla 0'a
-                # dusuyordu). Her istekten once rastgele bir bekleme ekleyerek
-                # temposunu insan davranisina yaklastiriyoruz.
-                time.sleep(random.uniform(4, 11))
+                # Tek site modunda ayni siteye 34 kategori art arda hizli
+                # sorulunca bot korumasi tetiklenebiliyor - kucuk bir bekleme
+                # ekleyip temposunu yatistiriyoruz (hepsi modunda siteler zaten
+                # birbiri ardina degistigi icin dogal bir bosluk oluyor).
+                time.sleep(random.uniform(2, 5) if hedef_site != "hepsi" else 0.5)
                 try:
                     sonuclar = fonksiyon(1, url=url, kategori=kategori_adi)
                     toplam_urunler.extend(sonuclar)
