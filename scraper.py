@@ -1,5 +1,6 @@
 ﻿import os
 import re
+import random
 import time
 import json
 import logging
@@ -601,6 +602,11 @@ def idefix_tara(max_sayfa=1, url=None, kategori="Bebek Bezi"):
                 if not titles:
                     log.warning("[idefix] Hiç kart bulunamadı.")
                     debug_snapshot(page, f"idefix_{kategori}")
+                else:
+                    # TEŞHİS: farklı kategorilerde hep ayni 24 urun gelip gelmedigini
+                    # dogrulamak icin ilk 2 basligi logla (2026-09-12'de eklendi)
+                    ornek_basliklar = [t.get_text(strip=True)[:40] for t in titles[:2]]
+                    log.info(f"[idefix] '{kategori}' -> {len(titles)} kart, ornekler: {ornek_basliklar}")
                 eklenen = 0
                 for title_el in titles:
                     try:
@@ -1106,17 +1112,44 @@ if __name__ == "__main__":
     print("🚀 Bebiio Kusursuz Fiyat Motoru Başlatıldı!\n")
     try:
         toplam_urunler = []
+        # Devre kesici: bir site art arda 2 kategoride 0 ürün/hata verirse,
+        # bu çalıştırma boyunca o site tamamen atlanır. Amaç: bot korumasına
+        # yakalanmış (veya X-server gibi kalıcı bir sorunu olan) bir siteyi
+        # 30+ kez art arda dövüp zaman/IP itibarı israf etmemek.
+        ARDISIK_SIFIR_ESIGI = 2
+        site_ardisik_sifir = {s: 0 for s in SITE_FONKSIYONLARI}
+        site_devre_disi = set()
+
         for kategori_adi, site_urlleri in KATEGORILER.items():
             print(f"\n{'='*50}\n📂 KATEGORİ: {kategori_adi}\n{'='*50}")
             for site_adi, url in site_urlleri.items():
                 if url is None:
                     print(f"⏭️  {site_adi}: '{kategori_adi}' için doğrulanmış URL yok, atlanıyor.")
                     continue
+                if site_adi in site_devre_disi:
+                    print(f"🔌 {site_adi}: art arda {ARDISIK_SIFIR_ESIGI} kez 0 ürün/hata verdiği için bu çalıştırmada devre dışı, atlanıyor.")
+                    continue
+
                 fonksiyon = SITE_FONKSIYONLARI[site_adi]
+                # 34 kategoriyi ayni siteye art arda hizlica sormak, bot korumasini
+                # gitgide daha sert tetikliyor (Trendyol/eBebek/Amazon zamanla 0'a
+                # dusuyordu). Her istekten once rastgele bir bekleme ekleyerek
+                # temposunu insan davranisina yaklastiriyoruz.
+                time.sleep(random.uniform(4, 11))
                 try:
-                    toplam_urunler.extend(fonksiyon(1, url=url, kategori=kategori_adi))
+                    sonuclar = fonksiyon(1, url=url, kategori=kategori_adi)
+                    toplam_urunler.extend(sonuclar)
+                    if len(sonuclar) == 0:
+                        site_ardisik_sifir[site_adi] += 1
+                    else:
+                        site_ardisik_sifir[site_adi] = 0
                 except Exception as e:
                     print(f"❌ {site_adi} / {kategori_adi} taramasında hata: {e}")
+                    site_ardisik_sifir[site_adi] += 1
+
+                if site_ardisik_sifir[site_adi] >= ARDISIK_SIFIR_ESIGI:
+                    site_devre_disi.add(site_adi)
+                    print(f"🔌 {site_adi}: art arda {ARDISIK_SIFIR_ESIGI} kez 0 ürün/hata verdi, bu çalıştırma için devre dışı bırakıldı.")
 
         print(f"\n🎉 Tarama tamamlandı! Toplam {len(toplam_urunler)} ürün yakalandı. DB'ye yazılıyor...")
         save_to_db(toplam_urunler)
